@@ -1,7 +1,7 @@
 import pandas as pd
 import joblib
 from functools import lru_cache
-from preprocess import preprocess
+from backend.preprocess import preprocess
 import time
 import numpy as np
 

@@ -5,7 +5,7 @@ from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 
-from backend.preprocess import preprocess   # 🔥 IMPORTANT
+from preprocess import preprocess   # 🔥 IMPORTANT
 
 
 # ----------------------------

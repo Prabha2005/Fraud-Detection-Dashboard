@@ -78,7 +78,7 @@ async def predict(file: UploadFile = File(...)):
         # Enforce feature order
         X = df[FEATURE_ORDER]
 
-        from backend.predict import predict_fraud
+        from predict import predict_fraud
 
         # Inside predict endpoint:
         result_df = predict_fraud(df)
@@ -111,7 +111,7 @@ class Transaction(BaseModel):
 def predict_live(txn: Transaction):
     try:
         import pandas as pd
-        from backend.predict import predict_fraud
+        from predict import predict_fraud
 
         df = pd.DataFrame([txn.dict()])
         result_df = predict_fraud(df)

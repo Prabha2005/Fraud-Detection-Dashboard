@@ -110,7 +110,7 @@ st.set_page_config(page_title="UPI Fraud Detection", layout="wide")
 st.markdown('<div class="title">💳 Smart Fraud Detection Dashboard</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">Real-Time • Explainable • Intelligent Monitoring</div>', unsafe_allow_html=True)
 
-API_URL = "http://127.0.0.1:8000/predict"
+API_URL = "https://fraud-detection-dashboard-c7ur.onrender.com/predict"
 
 # ----------------------------
 # DOWNLOAD HELPER
@@ -207,7 +207,7 @@ with tab2:
             "hour_of_day": hour
         }
 
-        response = requests.post("http://127.0.0.1:8000/predict_live", json=payload)
+        response = requests.post("https://fraud-detection-dashboard-c7ur.onrender.com/predict_live", json=payload)
 
         if response.status_code == 200:
             result = response.json()

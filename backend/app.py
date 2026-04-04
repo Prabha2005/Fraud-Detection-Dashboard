@@ -5,6 +5,7 @@ from functools import lru_cache
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 
+app = FastAPI(title="UPI Fraud Detection API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -12,7 +13,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app = FastAPI(title="UPI Fraud Detection API")
+
 
 # ----------------------------
 # Model Loader (Cached)

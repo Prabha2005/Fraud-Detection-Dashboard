@@ -3,7 +3,15 @@ import pandas as pd
 import joblib
 from functools import lru_cache
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app = FastAPI(title="UPI Fraud Detection API")
 
 # ----------------------------

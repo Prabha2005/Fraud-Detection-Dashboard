@@ -263,8 +263,7 @@ with tab3:
                 "hour_of_day": random.randint(0, 23)
             }
 
-            response = requests.post("http://127.0.0.1:8000/predict_live", json=payload)
-
+            response = requests.post("https://fraud-detection-dashboard-c7ur.onrender.com/predict_live", json=payload)
             if response.status_code == 200:
                 result = response.json()
 

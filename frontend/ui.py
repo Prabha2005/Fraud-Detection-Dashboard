@@ -95,112 +95,205 @@ elif page == "Dashboard":
     # ----------------------------
     with tab1:
 
-        st.subheader("Upload Transaction CSV")
-        csv_file = st.file_uploader("Choose CSV file", type=["csv"])
+    st.subheader("Upload Transaction CSV (Prediction)")
+    csv_file = st.file_uploader("Choose CSV file", type=["csv"])
 
-        if csv_file:
+    if csv_file:
 
-            with st.spinner("Processing..."):
-                files = {"file": (csv_file.name, csv_file.getvalue(), "text/csv")}
-                response = requests.post(API_URL, files=files)
+        with st.spinner("Processing..."):
+            files = {"file": (csv_file.name, csv_file.getvalue(), "text/csv")}
+            response = requests.post(API_URL, files=files)
 
-            if response.status_code == 200:
-                df = pd.DataFrame(response.json())
+        if response.status_code == 200:
 
-                st.success("Prediction completed ✅")
-                st.dataframe(df)
+            df = pd.DataFrame(response.json())
 
-                st.download_button(
-                    "⬇ Download Results",
-                    df.to_csv(index=False),
-                    file_name="results.csv"
-                )
+            st.success("Prediction completed ✅")
+            st.dataframe(df, use_container_width=True)
 
-            else:
-                st.error(response.text)
+            # ----------------------------
+            # CARDS
+            # ----------------------------
+            total = len(df)
+            fraud_count = (df["prediction"] == "Fraud").sum()
+
+            col1, col2, col3 = st.columns(3)
+
+            col1.markdown(f"<div class='card'><h4>Total</h4><h1>{total}</h1></div>", unsafe_allow_html=True)
+            col2.markdown(f"<div class='card fraud'><h4>Fraud</h4><h1>{fraud_count}</h1></div>", unsafe_allow_html=True)
+            col3.markdown(f"<div class='card legit'><h4>Legit</h4><h1>{total - fraud_count}</h1></div>", unsafe_allow_html=True)
+
+            # ----------------------------
+            # HISTOGRAM
+            # ----------------------------
+            fig1, ax1 = plt.subplots()
+            ax1.hist(df["probability"], bins=20)
+            ax1.axvline(x=0.5, linestyle="--")
+            st.pyplot(fig1)
+
+            # ----------------------------
+            # BAR CHART
+            # ----------------------------
+            counts = df["prediction"].value_counts()
+            fig2, ax2 = plt.subplots()
+            ax2.bar(["Legit", "Fraud"], [counts.get("Legit", 0), counts.get("Fraud", 0)])
+            st.pyplot(fig2)
+
+            # ----------------------------
+            # REASONS
+            # ----------------------------
+            st.subheader("🧠 Fraud Analysis")
+            st.dataframe(df[["prediction", "reasons"]])
+
+            # ----------------------------
+            # DOWNLOAD
+            # ----------------------------
+            st.download_button(
+                "⬇ Download Results",
+                df.to_csv(index=False),
+                file_name="fraud_results.csv"
+            )
+
+        else:
+            st.error(response.text)
 
     # ----------------------------
     # TAB 2: REAL-TIME
     # ----------------------------
-    with tab2:
+   with tab2:
 
-        st.subheader("Real-Time Check")
+    st.subheader("⚡ Real-Time Transaction Check")
 
-        amount = st.number_input("Amount")
-        device = st.selectbox("Device Changed?", [0, 1])
-        merchant = st.slider("Merchant Risk", 0.0, 1.0)
-        geo = st.number_input("Geo Velocity")
-        hour = st.slider("Hour", 0, 23)
+    amount = st.number_input("Transaction Amount", min_value=0.0)
+    device = st.selectbox("Device Changed?", [0, 1])
+    merchant = st.slider("Merchant Risk", 0.0, 1.0)
+    geo = st.number_input("Geo Velocity", min_value=0.0)
+    hour = st.slider("Hour of Day", 0, 23)
 
-        if st.button("Check Fraud"):
+    if st.button("Check Fraud"):
 
-            payload = {
-                "transaction_amount": amount,
-                "device_change": device,
-                "merchant_risk": merchant,
-                "geo_velocity": geo,
-                "hour_of_day": hour
-            }
+        payload = {
+            "transaction_amount": amount,
+            "device_change": device,
+            "merchant_risk": merchant,
+            "geo_velocity": geo,
+            "hour_of_day": hour
+        }
 
-            res = requests.post(
-                "https://fraud-detection-dashboard-c7ur.onrender.com/predict_live",
-                json=payload
+        response = requests.post(
+            "https://fraud-detection-dashboard-c7ur.onrender.com/predict_live",
+            json=payload
+        )
+
+        if response.status_code == 200:
+
+            result = response.json()
+            df = pd.DataFrame([result])
+
+            # ----------------------------
+            # METRICS
+            # ----------------------------
+            col1, col2, col3 = st.columns(3)
+
+            col1.metric("Prediction", result["prediction"])
+            col2.metric("Probability", round(result["probability"], 3))
+            col3.metric("Risk Level", result["risk_level"])
+
+            # ----------------------------
+            # STATUS
+            # ----------------------------
+            if result["prediction"] == "Fraud":
+                st.error(f"🚨 {result['reasons']}")
+            else:
+                st.success("✅ Safe Transaction")
+
+            # ----------------------------
+            # VISUALIZATION
+            # ----------------------------
+            fig, ax = plt.subplots()
+            ax.bar(["Risk"], [result["probability"]])
+            ax.set_ylim(0, 1)
+            ax.set_title("Fraud Probability")
+            st.pyplot(fig)
+
+            # ----------------------------
+            # DOWNLOAD
+            # ----------------------------
+            st.download_button(
+                "⬇ Download Result",
+                df.to_csv(index=False),
+                file_name="realtime_result.csv"
             )
 
-            if res.status_code == 200:
-                result = res.json()
-
-                st.write(result)
-
-                df = pd.DataFrame([result])
-                st.download_button(
-                    "⬇ Download Result",
-                    df.to_csv(index=False),
-                    file_name="realtime.csv"
-                )
+        else:
+            st.error(response.text)
 
     # ----------------------------
     # TAB 3: SIMULATION
     # ----------------------------
     with tab3:
 
-        st.subheader("Live Simulation")
+    st.subheader("🔄 Live Monitoring Dashboard")
 
-        if st.button("Start Simulation"):
+    if st.button("Start Simulation"):
 
-            results = []
+        results = []
+        trend = []
 
-            for i in range(5):
+        for i in range(10):
 
-                payload = {
-                    "transaction_amount": random.randint(100, 100000),
-                    "device_change": random.choice([0, 1]),
-                    "merchant_risk": round(random.random(), 2),
-                    "geo_velocity": round(random.random() * 200, 2),
-                    "hour_of_day": random.randint(0, 23)
-                }
+            payload = {
+                "transaction_amount": random.randint(100, 100000),
+                "device_change": random.choice([0, 1]),
+                "merchant_risk": round(random.random(), 2),
+                "geo_velocity": round(random.random() * 200, 2),
+                "hour_of_day": random.randint(0, 23)
+            }
 
-                res = requests.post(
-                    "https://fraud-detection-dashboard-c7ur.onrender.com/predict_live",
-                    json=payload
-                )
+            response = requests.post(
+                "https://fraud-detection-dashboard-c7ur.onrender.com/predict_live",
+                json=payload
+            )
 
-                if res.status_code == 200:
-                    result = res.json()
-                    results.append(result)
+            if response.status_code == 200:
 
-                    st.write(result)
+                result = response.json()
+                results.append(result)
+                trend.append(result["probability"])
 
-                time.sleep(1)
+                st.write(f"### Transaction {i+1}")
+                st.write(payload)
 
+                if result["prediction"] == "Fraud":
+                    st.error("🚨 Fraud Detected")
+                else:
+                    st.success("✅ Legit")
+
+                # ----------------------------
+                # TREND GRAPH
+                # ----------------------------
+                fig, ax = plt.subplots()
+                ax.plot(trend)
+                ax.set_ylim(0, 1)
+                ax.set_title("Fraud Risk Trend")
+                st.pyplot(fig)
+
+            else:
+                st.error(response.text)
+
+            time.sleep(1)
+
+        # ----------------------------
+        # DOWNLOAD
+        # ----------------------------
+        if results:
             df = pd.DataFrame(results)
 
             st.download_button(
-                "⬇ Download Simulation",
+                "⬇ Download Simulation Results",
                 df.to_csv(index=False),
-                file_name="simulation.csv"
+                file_name="simulation_results.csv"
             )
-
 # ============================
 # AI ASSISTANT
 # ============================
@@ -209,12 +302,18 @@ st.sidebar.markdown("## 🤖 AI Assistant")
 q = st.sidebar.selectbox("Ask something:", [
     "How this app works?",
     "What do I do now?",
-    "What is fraud detection?"
+    "What is fraud detection?",
+    "How to use upload feature?"
 ])
 
 if q == "How this app works?":
-    st.sidebar.info("Uses ML to detect fraud.")
+    st.sidebar.info("This app uses machine learning to detect fraud from transaction data.")
 elif q == "What do I do now?":
-    st.sidebar.info("Upload CSV or use real-time check.")
+    st.sidebar.info("Upload a CSV file or use real-time check to analyze transactions.")
 elif q == "What is fraud detection?":
-    st.sidebar.info("Identifying suspicious transactions.")
+    st.sidebar.info("Fraud detection identifies suspicious transactions using patterns and AI models.")
+elif q == "How to use upload feature?":
+    st.sidebar.info("Go to Upload tab → Upload CSV → View results and download.")
+else:
+    st.sidebar.info("Please select a valid question.")
+

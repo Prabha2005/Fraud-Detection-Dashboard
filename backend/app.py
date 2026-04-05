@@ -92,7 +92,7 @@ async def predict(file: UploadFile = File(...)):
         "reasons": row["reasons"],
         "latency_ms": row["inference_latency_ms"]
     })
-            return response
+        return response
 
     except HTTPException:
         raise

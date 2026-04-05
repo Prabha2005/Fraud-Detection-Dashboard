@@ -90,10 +90,10 @@ elif page == "Dashboard":
         "🔄 Live Simulation"
     ])
 
-    # ----------------------------
-    # TAB 1: UPLOAD
-    # ----------------------------
-    with tab1:
+# ----------------------------
+# TAB 1: UPLOAD
+# ----------------------------
+with tab1:
 
     st.subheader("Upload Transaction CSV (Prediction)")
     csv_file = st.file_uploader("Choose CSV file", type=["csv"])
@@ -157,10 +157,10 @@ elif page == "Dashboard":
         else:
             st.error(response.text)
 
-    # ----------------------------
-    # TAB 2: REAL-TIME
-    # ----------------------------
-   with tab2:
+# ----------------------------
+# TAB 2: REAL-TIME
+# ----------------------------
+with tab2:
 
     st.subheader("⚡ Real-Time Transaction Check")
 
@@ -228,10 +228,10 @@ elif page == "Dashboard":
         else:
             st.error(response.text)
 
-    # ----------------------------
-    # TAB 3: SIMULATION
-    # ----------------------------
-    with tab3:
+# ----------------------------
+# TAB 3: SIMULATION
+# ----------------------------
+with tab3:
 
     st.subheader("🔄 Live Monitoring Dashboard")
 
@@ -294,6 +294,7 @@ elif page == "Dashboard":
                 df.to_csv(index=False),
                 file_name="simulation_results.csv"
             )
+
 # ============================
 # AI ASSISTANT
 # ============================

@@ -2,6 +2,8 @@ import sys
 import os
 
 sys.path.append(os.path.dirname(__file__))
+print("FILES:", os.listdir())
+
 from fastapi import FastAPI, UploadFile, File, HTTPException
 import pandas as pd
 import joblib

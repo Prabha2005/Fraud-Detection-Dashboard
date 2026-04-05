@@ -103,14 +103,42 @@ header {
 </style>
 """, unsafe_allow_html=True)
 # ----------------------------
-# PAGE CONFIG
+# PAGE CONFIG ### 👩‍💻 Built By
+   
 # ----------------------------
+page = st.sidebar.selectbox("Navigation", ["Dashboard", "About"])
 st.set_page_config(page_title="UPI Fraud Detection", layout="wide")
 
 st.markdown('<div class="title">💳 Smart Fraud Detection Dashboard</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">Real-Time • Explainable • Intelligent Monitoring</div>', unsafe_allow_html=True)
 
 API_URL = "https://fraud-detection-dashboard-c7ur.onrender.com/predict"
+
+# ----------------------------
+# ABOUT PAGE
+# ----------------------------
+if page == "About":
+    st.title("📘 About Smart Fraud Detection Dashboard")
+
+    st.markdown("""
+    ### 💡 What is this App?
+    This AI-powered dashboard helps detect fraudulent UPI transactions using machine learning.
+
+    ### ⚙️ How it Works
+    - Upload CSV → Bulk fraud detection
+    - Real-time check → Instant prediction
+    - Live simulation → Continuous monitoring
+
+    ### 🧠 Features
+    - Fraud probability scoring
+    - Risk level classification (Low / Medium / High)
+    - Explainable AI (reasons for fraud)
+
+    ### 🔐 Why it matters?
+    Helps prevent financial fraud and ensures secure digital payments.
+
+    
+    """)
 
 # ----------------------------
 # DOWNLOAD HELPER
@@ -300,3 +328,35 @@ with tab3:
                 latest_simulation_df.to_csv(index=False),
                 file_name="simulation_results.csv"
             )
+
+st.sidebar.markdown("## 🤖 AI Assistant")
+
+question = st.sidebar.selectbox(
+    "Ask something:",
+    [
+        "How this app works?",
+        "What do I do now?",
+        "What is fraud detection?",
+        "How to use upload feature?"
+    ]
+)
+
+def get_answer(q):
+    if q == "How this app works?":
+        return "This app uses machine learning to detect fraud from transaction data."
+
+    elif q == "What do I do now?":
+        return "Upload a CSV file or use real-time check to analyze transactions."
+
+    elif q == "What is fraud detection?":
+        return "Fraud detection identifies suspicious transactions using patterns and AI models."
+
+    elif q == "How to use upload feature?":
+        return "Go to Upload tab → Upload CSV → View results and download."
+
+    else:
+        return "Please select a valid question."
+
+answer = get_answer(question)
+
+st.sidebar.info(answer)

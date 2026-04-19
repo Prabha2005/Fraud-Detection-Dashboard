@@ -10,17 +10,30 @@ import random
 #API_URL = "http://127.0.0.1:8000"
 API_URL = "https://fraud-detection-dashboard-c7ur.onrender.com"
 
+if "token" not in st.session_state:
+    st.session_state.token = None
+
+mode = st.radio("Select", ["Login", "Signup"])
+
+if mode == "Signup":
+    if st.button("Create Account"):
+        res = requests.post(
+            f"{API_URL}/signup",
+            params={"username": username, "password": password}
+        )
+        st.success("Account created")
+
+
 # ----------------------------
 # LOGIN AUTHENTICATION
 # ----------------------------
 if st.session_state.token is None:
     st.title("🔐 UPI Fraud Detection System")
-
-if "token" not in st.session_state:
-    st.session_state.token = None
-
-if st.session_state.token is None:
     st.subheader("Login")
+
+
+#if st.session_state.token is None:
+    
 
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
@@ -41,7 +54,10 @@ if st.session_state.token is None:
     st.stop()
 
 # Logout button
-st.sidebar.button("Logout", on_click=lambda: st.session_state.update({"token": None}))
+#st.sidebar.button("Logout", on_click=lambda: st.session_state.update({"token": None}))
+if st.sidebar.button("Logout"):
+    st.session_state.token = None
+    st.rerun()
 
 # ----------------------------
 # PAGE CONFIG (MUST BE FIRST)

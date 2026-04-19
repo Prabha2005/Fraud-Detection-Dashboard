@@ -1,14 +1,17 @@
 from ipaddress import ip_address
 import sys
 import os
-
 from flask import request
 from auth import create_token, verify_token
 from models import Transaction
-import json
 from fastapi import Depends
 from pydantic import BaseModel
 from fastapi import Request
+from database import get_db
+from auth import hash_password, verify_password
+from database import create_table
+
+create_table()
 #ip_address = request.client.host
 #user_agent = request.headers.get("user-agent")
 
@@ -68,21 +71,46 @@ def health_check():
 
 
 # ----------------------------
+# Signup Endpoint
+# ----------------------------
+@app.post("/signup")
+def signup(username: str, password: str):
+    conn = get_db()
+
+    hashed = hash_password(password)
+
+    try:
+        conn.execute(
+            "INSERT INTO users (username, password) VALUES (?, ?)",
+            (username, hashed)
+        )
+        conn.commit()
+        return {"message": "User created"}
+    except:
+        raise HTTPException(status_code=400, detail="User already exists")
+    
+
+# ----------------------------
 # Authentication Endpoint
 # ----------------------------
-
 from models import LoginRequest
 
 @app.post("/login")
-def login(data: LoginRequest):
-    with open("users.json") as f:
-        users = json.load(f)
+def login(username: str, password: str):
+    conn = get_db()
 
-    if data.username in users and users[data.username] == data.password:
-        token = create_token(data.username)
+    user = conn.execute(
+        "SELECT * FROM users WHERE username = ?",
+        (username,)
+    ).fetchone()
+
+    if user and verify_password(password, user["password"]):
+        token = create_token(username)
         return {"token": token}
-    
+
     raise HTTPException(status_code=401, detail="Invalid credentials")
+
+
 # ----------------------------
 # Prediction Endpoint
 # ----------------------------
@@ -154,7 +182,7 @@ def predict_live(txn: Transaction, request: Request, user=Depends(verify_token))
         user_agent = request.headers.get("user-agent")
         print("User IP:", ip_address)
         print("Device:", user_agent)
-        
+
         import pandas as pd
         from predict import predict_fraud
 

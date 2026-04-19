@@ -1,6 +1,7 @@
 import jwt
 from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+import bcrypt
 
 SECRET_KEY = "mysecretkey"
 security = HTTPBearer()
@@ -16,3 +17,9 @@ def verify_token(token: HTTPAuthorizationCredentials = Depends(security)):
         return payload
     except:
         raise HTTPException(status_code=401, detail="Invalid token")
+    
+def hash_password(password: str):
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+def verify_password(password: str, hashed: str):
+    return bcrypt.checkpw(password.encode(), hashed.encode())

@@ -1,10 +1,40 @@
+from ipaddress import ip_address
+import sys
+import os
+
+from flask import request
+from auth import create_token, verify_token
+from models import Transaction
+import json
+from fastapi import Depends
+from pydantic import BaseModel
+from fastapi import Request
+#ip_address = request.client.host
+#user_agent = request.headers.get("user-agent")
+
+#print("User IP:",  ip_address)
+#print("Device Info:", user_agent)
+
+
+sys.path.append(os.path.dirname(__file__))
+print("FILES:", os.listdir())
+
 from fastapi import FastAPI, UploadFile, File, HTTPException
 import pandas as pd
 import joblib
 from functools import lru_cache
-from pydantic import BaseModel
+#from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="UPI Fraud Detection API")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # ----------------------------
 # Model Loader (Cached)
@@ -38,11 +68,26 @@ def health_check():
 
 
 # ----------------------------
+# Authentication Endpoint
+# ----------------------------
+
+from models import LoginRequest
+
+@app.post("/login")
+def login(data: LoginRequest):
+    with open("users.json") as f:
+        users = json.load(f)
+
+    if data.username in users and users[data.username] == data.password:
+        token = create_token(data.username)
+        return {"token": token}
+    
+    raise HTTPException(status_code=401, detail="Invalid credentials")
+# ----------------------------
 # Prediction Endpoint
 # ----------------------------
 @app.post("/predict")
-async def predict(file: UploadFile = File(...)):
-
+async def predict(file: UploadFile = File(...), user=Depends(verify_token)):
     # Validate file type
     if not file.filename.endswith(".csv"):
         raise HTTPException(status_code=400, detail="Only CSV files are allowed.")
@@ -69,7 +114,7 @@ async def predict(file: UploadFile = File(...)):
         # Enforce feature order
         X = df[FEATURE_ORDER]
 
-        from backend.predict import predict_fraud
+        from predict import predict_fraud
 
         # Inside predict endpoint:
         result_df = predict_fraud(df)
@@ -83,7 +128,7 @@ async def predict(file: UploadFile = File(...)):
         "reasons": row["reasons"],
         "latency_ms": row["inference_latency_ms"]
     })
-            return response
+        return response
 
     except HTTPException:
         raise
@@ -97,12 +142,21 @@ class Transaction(BaseModel):
     geo_velocity: float
     hour_of_day: int
 
+    #return {"message": "Prediction working securely"}
+
+
 
 @app.post("/predict_live")
-def predict_live(txn: Transaction):
+#def predict_live(txn: Transaction, user=Depends(verify_token)):
+def predict_live(txn: Transaction, request: Request, user=Depends(verify_token)):
     try:
+        ip_address = request.client.host
+        user_agent = request.headers.get("user-agent")
+        print("User IP:", ip_address)
+        print("Device:", user_agent)
+        
         import pandas as pd
-        from backend.predict import predict_fraud
+        from predict import predict_fraud
 
         df = pd.DataFrame([txn.dict()])
         result_df = predict_fraud(df)
@@ -113,8 +167,13 @@ def predict_live(txn: Transaction):
             "prediction": "Fraud" if int(row["fraud_prediction"]) == 1 else "Legit",
             "probability": float(row["fraud_probability"]),
             "risk_level": str(row["risk_level"]),
-            "reasons": list(row["reasons"]) if isinstance(row["reasons"], list) else []
+            "reasons": list(row["reasons"]) if isinstance(row["reasons"], list) else [],
+            "ip_address": ip_address,
+            "device": user_agent
         }
+        #ip = request.client.host
+
 
     except Exception as e:
         return {"error": str(e)}
+

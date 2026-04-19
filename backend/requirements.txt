@@ -8,3 +8,4 @@ xgboost
 joblib
 requests
 python-multipart
+pyjwt

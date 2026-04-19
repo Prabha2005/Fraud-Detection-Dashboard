@@ -13,51 +13,51 @@ API_URL = "https://fraud-detection-dashboard-c7ur.onrender.com"
 if "token" not in st.session_state:
     st.session_state.token = None
 
+st.set_page_config(page_title="UPI Fraud Detection", layout="wide")
 
 # ----------------------------
-# AUTH (LOGIN / SIGNUP)
-# ----------------------------
-
-mode = st.radio("Select", ["Login", "Signup"])
-
-username = st.text_input("Username")
-password = st.text_input("Password", type="password")
-
-if mode == "Signup":
-    if st.button("Create Account"):
-        res = requests.post(
-            f"{API_URL}/signup",
-            json={"username": username, "password": password}
-        )
-
-        if res.status_code == 200:
-            st.success("Account created ✅")
-        else:
-            st.error(res.text)
-
-
-
-# ----------------------------
-# LOGIN AUTHENTICATION
+# AUTHENTICATION (FINAL CLEAN)
 # ----------------------------
 if st.session_state.token is None:
-    st.title("🔐 UPI Fraud Detection System")
-    
-    if mode == "Login":
-        if st.button("Login"):
-            response = requests.post(
-                f"{API_URL}/login",
-                json={"username": username, "password": password}
-            )
 
-            if response.status_code == 200:
-                st.session_state.token = response.json()["token"]
-                st.success("Login successful ✅")
-                st.rerun()
-            else:
-                st.error("Invalid credentials ❌")
+    st.markdown('<div class="title">🔐 UPI Fraud Detection System</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subtitle">Secure Login / Signup</div>', unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([1,2,1])
+
+    with col2:
+        mode = st.radio("Select", ["Login", "Signup"], horizontal=True)
+
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+
+        if mode == "Signup":
+            if st.button("Create Account", use_container_width=True):
+                res = requests.post(
+                    f"{API_URL}/signup",
+                    json={"username": username, "password": password}
+                )
+                if res.status_code == 200:
+                    st.success("Account created ✅")
+                else:
+                    st.error("User already exists ❌")
+
+        else:
+            if st.button("Login", use_container_width=True):
+                response = requests.post(
+                    f"{API_URL}/login",
+                    json={"username": username, "password": password}
+                )
+
+                if response.status_code == 200:
+                    st.session_state.token = response.json()["token"]
+                    st.success("Login successful ✅")
+                    st.rerun()
+                else:
+                    st.error("Invalid credentials ❌")
 
     st.stop()
+
 
 # Logout button
 #st.sidebar.button("Logout", on_click=lambda: st.session_state.update({"token": None}))
@@ -68,7 +68,7 @@ if st.sidebar.button("Logout"):
 # ----------------------------
 # PAGE CONFIG (MUST BE FIRST)
 # ----------------------------
-st.set_page_config(page_title="UPI Fraud Detection", layout="wide")
+#st.set_page_config(page_title="UPI Fraud Detection", layout="wide")
 
 # ----------------------------
 # SIDEBAR NAVIGATION

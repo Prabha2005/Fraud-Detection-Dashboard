@@ -1,33 +1,17 @@
-from ipaddress import ip_address
-import sys
-import os
-from flask import request
-from auth import create_token, verify_token
-from models import Transaction
-from fastapi import Depends
-from pydantic import BaseModel
-from fastapi import Request
-from database import get_db
-from auth import hash_password, verify_password
-from database import create_table
-
-create_table()
-#ip_address = request.client.host
-#user_agent = request.headers.get("user-agent")
-
-#print("User IP:",  ip_address)
-#print("Device Info:", user_agent)
-
-
-sys.path.append(os.path.dirname(__file__))
-print("FILES:", os.listdir())
-
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Request
+from fastapi.middleware.cors import CORSMiddleware
+from functools import lru_cache
 import pandas as pd
 import joblib
-from functools import lru_cache
-#from pydantic import BaseModel
-from fastapi.middleware.cors import CORSMiddleware
+import os
+
+from auth import create_token, verify_token, hash_password, verify_password
+from database import get_db, create_table
+from models import Transaction, LoginRequest
+
+
+create_table()
+
 
 app = FastAPI(title="UPI Fraud Detection API")
 app.add_middleware(
@@ -73,39 +57,40 @@ def health_check():
 # ----------------------------
 # Signup Endpoint
 # ----------------------------
+
+
 @app.post("/signup")
-def signup(username: str, password: str):
+def signup(data: LoginRequest):
     conn = get_db()
 
-    hashed = hash_password(password)
+    hashed = hash_password(data.password)
 
     try:
         conn.execute(
             "INSERT INTO users (username, password) VALUES (?, ?)",
-            (username, hashed)
+            (data.username, hashed)
         )
         conn.commit()
         return {"message": "User created"}
     except:
         raise HTTPException(status_code=400, detail="User already exists")
-    
 
 # ----------------------------
 # Authentication Endpoint
 # ----------------------------
-from models import LoginRequest
 
 @app.post("/login")
-def login(username: str, password: str):
+def login(data: LoginRequest):
     conn = get_db()
 
     user = conn.execute(
         "SELECT * FROM users WHERE username = ?",
-        (username,)
+        (data.username,)
     ).fetchone()
 
-    if user and verify_password(password, user["password"]):
-        token = create_token(username)
+    # ✅ FIX HERE
+    if user and verify_password(data.password, user["password"]):
+        token = create_token(data.username)
         return {"token": token}
 
     raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -163,17 +148,12 @@ async def predict(file: UploadFile = File(...), user=Depends(verify_token)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-class Transaction(BaseModel):
-    transaction_amount: float
-    device_change: int
-    merchant_risk: float
-    geo_velocity: float
-    hour_of_day: int
-
-    #return {"message": "Prediction working securely"}
 
 
 
+# ----------------------------
+# Live Prediction Endpoint
+# ----------------------------
 @app.post("/predict_live")
 #def predict_live(txn: Transaction, user=Depends(verify_token)):
 def predict_live(txn: Transaction, request: Request, user=Depends(verify_token)):

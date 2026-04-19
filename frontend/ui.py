@@ -13,15 +13,28 @@ API_URL = "https://fraud-detection-dashboard-c7ur.onrender.com"
 if "token" not in st.session_state:
     st.session_state.token = None
 
+
+# ----------------------------
+# AUTH (LOGIN / SIGNUP)
+# ----------------------------
+
 mode = st.radio("Select", ["Login", "Signup"])
+
+username = st.text_input("Username")
+password = st.text_input("Password", type="password")
 
 if mode == "Signup":
     if st.button("Create Account"):
         res = requests.post(
             f"{API_URL}/signup",
-            params={"username": username, "password": password}
+            json={"username": username, "password": password}
         )
-        st.success("Account created")
+
+        if res.status_code == 200:
+            st.success("Account created ✅")
+        else:
+            st.error(res.text)
+
 
 
 # ----------------------------
@@ -29,27 +42,20 @@ if mode == "Signup":
 # ----------------------------
 if st.session_state.token is None:
     st.title("🔐 UPI Fraud Detection System")
-    st.subheader("Login")
-
-
-#if st.session_state.token is None:
     
+    if mode == "Login":
+        if st.button("Login"):
+            response = requests.post(
+                f"{API_URL}/login",
+                json={"username": username, "password": password}
+            )
 
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
-
-    if st.button("Login"):
-        response = requests.post(
-            f"{API_URL}/login",
-            json={"username": username, "password": password}
-        )
-
-        if response.status_code == 200:
-            st.session_state.token = response.json()["token"]
-            st.success("Login successful ✅")
-            st.rerun()   # 🔥 THIS IS THE KEY FIX
-        else:
-            st.error("Invalid credentials ❌")
+            if response.status_code == 200:
+                st.session_state.token = response.json()["token"]
+                st.success("Login successful ✅")
+                st.rerun()
+            else:
+                st.error("Invalid credentials ❌")
 
     st.stop()
 

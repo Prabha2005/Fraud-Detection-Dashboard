@@ -1,5 +1,3 @@
-from wsgiref import headers
-
 import streamlit as st
 import pandas as pd
 import requests
@@ -7,13 +5,25 @@ import matplotlib.pyplot as plt
 import tempfile
 import time
 import random
+from streamlit_cookies_manager import EncryptedCookieManager
 
 
 #API_URL = "http://127.0.0.1:8000"
 API_URL = "https://fraud-detection-dashboard-c7ur.onrender.com"
 
+cookies = EncryptedCookieManager(
+    prefix="fraud_app",
+    password="some_secret_key"
+)
+
+if not cookies.ready():
+    st.stop()
+
+
+#st.session_state.token = token
+
 if "token" not in st.session_state:
-    st.session_state.token = None
+    st.session_state.token = cookies.get("token")
 
 st.set_page_config(page_title="UPI Fraud Detection", layout="wide")
 
@@ -52,7 +62,12 @@ if st.session_state.token is None:
                 )
 
                 if response.status_code == 200:
-                    st.session_state.token = response.json()["token"]
+                    token = response.json()["token"]
+                    # ✅ Save in session
+                    st.session_state.token = token
+                    # ✅ Save in cookie
+                    cookies["token"] = token
+                    cookies.save()
                     st.success("Login successful ✅")
                     st.rerun()
                 else:
@@ -63,7 +78,9 @@ if st.session_state.token is None:
 
 # Logout button
 #st.sidebar.button("Logout", on_click=lambda: st.session_state.update({"token": None}))
-if st.sidebar.button("Logout"):
+if st.button("Logout"):
+    cookies["token"] = ""
+    cookies.save()
     st.session_state.token = None
     st.rerun()
 

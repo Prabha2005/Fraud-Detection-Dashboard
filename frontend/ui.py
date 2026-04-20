@@ -705,11 +705,11 @@ elif page == "Dashboard":
                     st.error(f"Backend Error: {data['error']}")
                     st.stop()
                 # 🔍 DEBUG LINE (ADD HERE)
-                for item in data:
-                    if isinstance(item, dict) and item.get("explanation"):
-                        st.markdown("### 🧠 AI Explanation")
-                        for reason in item["explanation"].get("top_reasons", []):
-                            st.write(f"👉 {reason}")
+                # item in data:
+                #    if isinstance(item, dict) and item.get("explanation"):
+                #        st.markdown("### 🧠 AI Explanation")
+                #        for reason in item["explanation"].get("top_reasons", []):
+                #            st.write(f"👉 {reason}")
 
                 
                 # ✅ Handle error response

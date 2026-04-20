@@ -217,7 +217,7 @@ def predict_live(txn: Transaction, request: Request, user=Depends(verify_token))
         # ✅ Safe SHAP call
         if shap_explainer:
             explanation = explain_prediction(shap_explainer, pd.DataFrame([row]))
-         else:
+        else:
             if row["reasons"]:   # ✅ only if reasons exist
                     explanation = {
             "top_reasons": row["reasons"]

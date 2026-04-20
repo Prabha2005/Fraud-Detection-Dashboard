@@ -311,7 +311,7 @@ async def predict_pdf(file: UploadFile = File(...), user=Depends(verify_token)):
             name_match = re.search(r"(Paid to|Received from)\s+(.+)", line)
    
             if name_match:
-                current_merchant = name_match.group(1).strip()
+                current_merchant = name_match.group(2).strip()
                 print("FOUND MERCHANT:", current_merchant)
                 continue
             
@@ -364,6 +364,16 @@ async def predict_pdf(file: UploadFile = File(...), user=Depends(verify_token)):
 
         response = []
         for _, row in result_df.iterrows():
+            amount = float(row["transaction_amount"])
+            prediction = "Fraud" if row["fraud_prediction"] == 1 else "Legit"
+            probability = round(row["fraud_probability"], 3)
+
+            # 🔥 RULE FIX
+            if amount < 50:
+                prediction = "Legit"
+                probability = 0.001
+
+            
             # SHAP explanation
             if shap_explainer:
                 explanation = explain_prediction(shap_explainer, pd.DataFrame([row]))
@@ -371,25 +381,27 @@ async def predict_pdf(file: UploadFile = File(...), user=Depends(verify_token)):
                 explanation = {
                     "top_reasons": row["reasons"]
                 }
+                
 
     # Audit logging
             log_prediction({
-        "user": user.get("user"),
-        "amount": float(row["transaction_amount"]),
-        "prediction": "Fraud" if row["fraud_prediction"] == 1 else "Legit",
-        "probability": float(row["fraud_probability"]),
-        "source": "pdf"
-    })
+    "user": user.get("user"),
+    "amount": amount,
+    "prediction": prediction,
+    "probability": probability,
+    "source": "pdf"
+})
+            
+        
             response.append({
-                #"merchant": row.get("merchant", "Unknown"),
-                "amount": float(row["transaction_amount"]),
-                "new_payee": row.get("new_payee", 0),
-                "prediction": "Fraud" if row["fraud_prediction"] == 1 else "Legit",
-                "probability": round(row["fraud_probability"], 3),
-                "risk_level": row["risk_level"],
-                "reasons": row["reasons"],
-                "explanation": explanation
-            })
+        "amount": amount,
+        "new_payee": row.get("new_payee", 0),
+        "prediction": prediction,
+        "probability": probability,
+        "risk_level": row["risk_level"],
+        "reasons": row["reasons"],
+        "explanation": explanation
+    })
 
         return response
 

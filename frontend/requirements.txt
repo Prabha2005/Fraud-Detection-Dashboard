@@ -6,3 +6,4 @@ numpy
 shap
 plotly
 Pillow
+streamlit-cookies-manager

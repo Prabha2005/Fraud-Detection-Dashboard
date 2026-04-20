@@ -9,8 +9,8 @@ import time
 import random
 
 
-API_URL = "http://127.0.0.1:8000"
-#API_URL = "https://fraud-detection-dashboard-c7ur.onrender.com"
+#API_URL = "http://127.0.0.1:8000"
+API_URL = "https://fraud-detection-dashboard-c7ur.onrender.com"
 
 if "token" not in st.session_state:
     st.session_state.token = None

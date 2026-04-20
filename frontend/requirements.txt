@@ -2,4 +2,7 @@ streamlit
 pandas
 requests
 matplotlib
-bcrypt
+numpy
+shap
+plotly
+Pillow

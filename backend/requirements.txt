@@ -9,5 +9,14 @@ joblib
 requests
 python-multipart
 pyjwt
-flask
 bcrypt
+
+# 🔥 NEW ADDITIONS
+shap
+pdfplumber
+matplotlib
+scipy
+
+# 🚀 OPTIONAL
+imbalanced-learn
+slowapi

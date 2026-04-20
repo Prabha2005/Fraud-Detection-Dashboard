@@ -16,3 +16,18 @@ def create_table():
     """)
     conn.commit()
     conn.close()
+
+def create_transaction_table():
+    conn = get_db()
+    conn.execute("""
+    CREATE TABLE IF NOT EXISTS transactions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT,
+        amount REAL,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        ip TEXT,
+        device TEXT
+    )
+    """)
+    conn.commit()
+    conn.close()

@@ -164,7 +164,7 @@ if page == "About":
     # ARCHITECTURE
     # ----------------------------
     st.markdown("## 🧠 System Architecture")
-    st.image("images/1st-image.jpg", caption="How the app works", use_container_width=True)
+    st.image("frontend/images/1st-image.jpg", caption="How the app works", use_container_width=True)
 
     st.markdown("""
     This system follows a **3-layer architecture**:
@@ -185,7 +185,7 @@ if page == "About":
     # WORKFLOW
     # ----------------------------
     st.markdown("## 🔄 System Workflow")
-    st.image("images/2nd-image.jpg", caption="System Workflow", use_container_width=True)
+    st.image("frontend/images/2nd-image.jpg", caption="System Workflow", use_container_width=True)
 
     st.markdown("""
     ### Step-by-Step Flow:

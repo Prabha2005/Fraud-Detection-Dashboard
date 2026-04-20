@@ -216,9 +216,14 @@ def predict_live(txn: Transaction, request: Request, user=Depends(verify_token))
         #explanation = explain_prediction(shap_explainer, df)
         # ✅ Safe SHAP call
         if shap_explainer:
-            explanation = explain_prediction(shap_explainer, df)
-        else:
-            explanation = {}
+            explanation = explain_prediction(shap_explainer, pd.DataFrame([row]))
+         else:
+            if row["reasons"]:   # ✅ only if reasons exist
+                    explanation = {
+            "top_reasons": row["reasons"]
+        }
+            else:
+                explanation = None
 
 
         history = conn.execute(
@@ -378,9 +383,12 @@ async def predict_pdf(file: UploadFile = File(...), user=Depends(verify_token)):
             if shap_explainer:
                 explanation = explain_prediction(shap_explainer, pd.DataFrame([row]))
             else:
-                explanation = {
-                    "top_reasons": row["reasons"]
-                }
+                if row["reasons"]:   # ✅ only if reasons exist
+                    explanation = {
+            "top_reasons": row["reasons"]
+        }
+                else:
+                    explanation = None
                 
 
     # Audit logging

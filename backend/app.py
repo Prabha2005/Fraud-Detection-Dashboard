@@ -14,7 +14,7 @@ from database import create_transaction_table, get_db, create_table
 from models import Transaction, LoginRequest
 
 from shap_utils import explain_prediction
-from velocity_features import get_velocity_features   # ✅ IMPORTANT
+from velocity_features import get_velocity_features   
 from audit_logger import log_prediction
 from retrain import retrain_model
 
@@ -103,7 +103,7 @@ def login(data: LoginRequest):
         (data.username,)
     ).fetchone()
 
-    # ✅ FIX HERE
+    # Password Verification
     if user and verify_password(data.password, user["password"]):
         token = create_token(data.username)
         return {"token": token}
@@ -126,7 +126,7 @@ async def predict(file: UploadFile = File(...), user=Depends(verify_token)):
 
         # Read CSV
         df = pd.read_csv(file.file)
-        # 🔥 Add missing velocity features (default values for CSV)
+        # Add missing velocity features (default values for CSV)
         df["txn_count_24h"] = 0
         df["amount_zscore"] = 0
         df["amount_vs_max"] = 1
@@ -185,7 +185,7 @@ def predict_live(txn: Transaction, request: Request, user=Depends(verify_token))
 
         #df = pd.DataFrame([txn.dict()])
         data = txn.dict()
-        # ✅ Map API fields → ML fields
+        # Map API fields → ML fields
         data["transaction_amount"] = data.get("amount")
         data["geo_velocity"] = data.get("location")  # or better: separate field later
         data["hour_of_day"] = data.get("time")
@@ -208,17 +208,17 @@ def predict_live(txn: Transaction, request: Request, user=Depends(verify_token))
         # Merge
         data.update(velocity)
         df = pd.DataFrame([data])
-        # ✅ Enforce feature order
+        # Enforce feature order
         df = df[FEATURE_ORDER]
         result_df = predict_fraud(df)
         row = result_df.iloc[0]
-        # ✅ SHAP explanation
+        # SHAP explanation
         #explanation = explain_prediction(shap_explainer, df)
-        # ✅ Safe SHAP call
+        # Safe SHAP call
         if shap_explainer:
             explanation = explain_prediction(shap_explainer, pd.DataFrame([row]))
         else:
-            if row["reasons"]:   # ✅ only if reasons exist
+            if row["reasons"]:   # only if reasons exist
                     explanation = {
             "top_reasons": row["reasons"]
         }
@@ -333,8 +333,8 @@ async def predict_pdf(file: UploadFile = File(...), user=Depends(verify_token)):
                 
                 transactions.append({
         "transaction_amount": amount,
-        "merchant": merchant,   # ✅ 
-            "new_payee": is_new,    # ✅ IMPORTANT
+        "merchant": merchant,   
+            "new_payee": is_new,    # New pay
         "device_change": 0,
         "merchant_risk": round(random.random(), 2),
         "geo_velocity": round(random.random() * 200, 2),
@@ -383,7 +383,7 @@ async def predict_pdf(file: UploadFile = File(...), user=Depends(verify_token)):
             if shap_explainer:
                 explanation = explain_prediction(shap_explainer, pd.DataFrame([row]))
             else:
-                if row["reasons"]:   # ✅ only if reasons exist
+                if row["reasons"]:   # only if reasons exist
                     explanation = {
             "top_reasons": row["reasons"]
         }

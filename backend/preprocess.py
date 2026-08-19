@@ -1,11 +1,32 @@
 import pandas as pd
-import numpy as np
+
+
+# ----------------------------
+# Feature Definitions
+# ----------------------------
+BASIC_FEATURES = [
+    "transaction_amount",
+    "device_change",
+    "merchant_risk",
+    "geo_velocity",
+    "hour_of_day",
+]
+
+BEHAVIOURAL_FEATURES = [
+    "txn_count_24h",
+    "amount_zscore",
+    "amount_vs_max",
+    "amount_sum_24h",
+]
+
+FEATURE_ORDER = BASIC_FEATURES + BEHAVIOURAL_FEATURES
 
 
 # ----------------------------
 # Geo Velocity Cleaning
 # ----------------------------
 def calculate_geo_velocity(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
     df["geo_velocity"] = df["geo_velocity"].abs()
     df["geo_velocity"] = df["geo_velocity"].clip(upper=500)
     return df
@@ -15,41 +36,45 @@ def calculate_geo_velocity(df: pd.DataFrame) -> pd.DataFrame:
 # Preprocessing Function
 # ----------------------------
 def preprocess(df: pd.DataFrame) -> pd.DataFrame:
+    if df.empty:
+        raise ValueError("Input DataFrame is empty.")
 
     df = df.copy()
 
-    required_features = [
-        "transaction_amount",
-        "device_change",
-        "merchant_risk",
-        "geo_velocity",
-        "hour_of_day"
+    # The five basic transaction features must be supplied.
+    missing_features = [
+        feature for feature in BASIC_FEATURES
+        if feature not in df.columns
     ]
 
-    # ----------------------------
-    # Check missing columns
-    # ----------------------------
-    for col in required_features:
-        if col not in df.columns:
-            raise ValueError(f"Missing column: {col}")
+    if missing_features:
+        raise ValueError(
+            f"Missing required columns: {missing_features}"
+        )
 
-    # ----------------------------
-    # Convert types safely
-    # ----------------------------
-    df["transaction_amount"] = pd.to_numeric(df["transaction_amount"], errors="coerce")
-    df["device_change"] = pd.to_numeric(df["device_change"], errors="coerce")
-    df["merchant_risk"] = pd.to_numeric(df["merchant_risk"], errors="coerce")
-    df["geo_velocity"] = pd.to_numeric(df["geo_velocity"], errors="coerce")
-    df["hour_of_day"] = pd.to_numeric(df["hour_of_day"], errors="coerce")
+    # Behavioural features may be unavailable for CSV/PDF records.
+    behavioural_defaults = {
+        "txn_count_24h": 0,
+        "amount_zscore": 0.0,
+        "amount_vs_max": 1.0,
+        "amount_sum_24h": 0.0,
+    }
 
-    # ----------------------------
-    # Handle missing values
-    # ----------------------------
-    df[required_features] = df[required_features].fillna(0)
+    for feature, default_value in behavioural_defaults.items():
+        if feature not in df.columns:
+            df[feature] = default_value
 
-    # ----------------------------
-    # Clean geo_velocity
-    # ----------------------------
+    # Convert all nine model features to numeric values.
+    for feature in FEATURE_ORDER:
+        df[feature] = pd.to_numeric(df[feature], errors="coerce")
+
+    # Handle invalid or missing values.
+    df[BASIC_FEATURES] = df[BASIC_FEATURES].fillna(0)
+
+    for feature, default_value in behavioural_defaults.items():
+        df[feature] = df[feature].fillna(default_value)
+
+    # Apply domain-specific cleaning.
     df = calculate_geo_velocity(df)
 
-    return df[required_features]
+    return df[FEATURE_ORDER]

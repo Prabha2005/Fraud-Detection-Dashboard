@@ -418,6 +418,8 @@ elif page == "Dashboard":
             if amount <= 0:
                 st.warning("⚠️ Enter valid transaction amount")
                 st.stop()
+
+            
             
             payload = {
     "amount": amount,           # ✅ correct variable

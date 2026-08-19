@@ -155,12 +155,25 @@ async def predict(file: UploadFile = File(...), user=Depends(verify_token)):
         response = []
         for _, row in result_df.iterrows():
             response.append({
-        "prediction": "Fraud" if row["fraud_prediction"] == 1 else "Legit",
-        "probability": round(row["fraud_probability"], 3),
-        "risk_level": row["risk_level"],
-        "reasons": row["reasons"],
-        "latency_ms": row["inference_latency_ms"]
-    })
+    "prediction": (
+        "Fraud"
+        if row["fraud_prediction"] == 1
+        else "Legit"
+    ),
+    "probability": round(
+        float(row["fraud_probability"]),
+        3,
+    ),
+    "risk_level": row["risk_level"],
+    "decision_threshold": round(
+        float(row["decision_threshold"]),
+        6,
+    ),
+    "reasons": row["reasons"],
+    "latency_ms": float(
+        row["inference_latency_ms"]
+    ),
+})
         return response
 
     except HTTPException:

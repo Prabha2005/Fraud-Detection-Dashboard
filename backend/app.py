@@ -8,6 +8,7 @@ import tempfile
 import re
 import pdfplumber
 import random
+from pathlib import Path
 
 from auth import create_token, verify_token, hash_password, verify_password
 from database import create_transaction_table, get_db, create_table
@@ -18,9 +19,14 @@ from velocity_features import get_velocity_features   # ✅ IMPORTANT
 from audit_logger import log_prediction
 from retrain import retrain_model
 
+BACKEND_DIR = Path(__file__).resolve().parent
+MODEL_DIR = BACKEND_DIR / "model"
+
 # Load SHAP explainer
 try:
-    shap_explainer = joblib.load("model/shap_explainer.pkl")
+    shap_explainer = joblib.load(
+    MODEL_DIR / "shap_explainer.pkl"
+)
 except:
     shap_explainer = None
 
@@ -42,7 +48,9 @@ app.add_middleware(
 @lru_cache()
 def load_model():
     try:
-        return joblib.load("model/xgboost_model.pkl")
+        return joblib.load(
+    MODEL_DIR / "xgboost_model.pkl"
+)
     except Exception as e:
         raise RuntimeError(f"Error loading model: {str(e)}")
 

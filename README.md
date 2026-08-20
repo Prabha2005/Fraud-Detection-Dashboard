@@ -106,9 +106,9 @@ Prediction, Probability, Risk Level and Reasons
 
 ## Dataset
 
-The repository contains a synthetic UPI transaction dataset with 1,000 records:
+The repository contains a synthetic UPI transaction dataset with 993 records:
 
-- 954 legitimate transactions
+- 947 legitimate transactions
 - 46 fraudulent transactions
 
 The target column is:
@@ -225,9 +225,9 @@ The dataset uses stratified splitting to preserve the fraud ratio:
 
 | Split | Records | Purpose |
 |---|---:|---|
-| Training | 600 | Train the XGBoost model |
-| Validation | 200 | Select the fraud threshold |
-| Testing | 200 | Final unseen evaluation |
+| Training | 595 | Train the XGBoost model |
+| Validation | 199 | Select the fraud threshold |
+| Testing | 199 | Final unseen evaluation |
 
 ---
 
@@ -247,7 +247,7 @@ Instead of using a hard-coded threshold of `0.5`, the training pipeline:
 The current selected threshold is approximately:
 
 ```text
-0.8123
+0.9615
 ```
 
 A transaction is classified as fraud when:
@@ -260,7 +260,7 @@ fraud probability >= saved decision threshold
 
 ## Current Evaluation Results
 
-The model was evaluated on a 200-record synthetic holdout set.
+The model was evaluated on a 199-record synthetic holdout set.
 
 | Metric | Result |
 |---|---:|
@@ -359,7 +359,7 @@ Example prediction object:
   "prediction": "Fraud",
   "probability": 0.964,
   "risk_level": "High Risk",
-  "decision_threshold": 0.812316,
+  "decision_threshold": 0.961475,
   "reasons": [
     "transaction_amount contributed",
     "geo_velocity contributed"
@@ -516,7 +516,7 @@ streamlit run frontend/ui.py
 
 ## Current Limitations
 
-- The dataset is synthetic and contains only 1,000 records.
+- The dataset is synthetic and contains only 993 records.
 - The test set contains only nine fraud cases.
 - Behavioural features are constant during training and have zero model importance.
 - Some PDF features are simulated because they are unavailable in the statement.

@@ -319,7 +319,6 @@ In the current trained model, the five basic transaction features influence pred
 | POST | `/predict` | Bearer token | Upload a CSV for batch prediction |
 | POST | `/predict_live` | Bearer token | Analyze a real-time transaction |
 | POST | `/predict_pdf` | Bearer token | Analyze transactions extracted from a PDF |
-| POST | `/retrain` | No | Experimental model-retraining endpoint |
 
 ### Health Check
 

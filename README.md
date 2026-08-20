@@ -218,6 +218,7 @@ Main configuration:
 - Evaluation metric: log loss
 - Random state: 42
 - Class imbalance: `scale_pos_weight`
+- `COOKIE_PASSWORD`: A secure random value used to encrypt the frontend authentication cookie.
 
 ### Dataset Split
 
@@ -274,7 +275,7 @@ The model was evaluated on a 199-record synthetic holdout set.
 ### Confusion Matrix
 
 ```text
-[[191, 0],
+[[190, 0],
  [  1, 8]]
 ```
 

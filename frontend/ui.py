@@ -18,9 +18,16 @@ API_URL = os.getenv(
     "https://fraud-detection-dashboard-c7ur.onrender.com",
 )
 
+COOKIE_PASSWORD = os.getenv("COOKIE_PASSWORD")
+
+if not COOKIE_PASSWORD:
+    raise RuntimeError(
+        "COOKIE_PASSWORD environment variable is required."
+    )
+
 cookies = EncryptedCookieManager(
     prefix="fraud_app",
-    password="some_secret_key"
+    password=COOKIE_PASSWORD,
 )
 
 if not cookies.ready():

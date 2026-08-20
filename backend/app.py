@@ -37,13 +37,37 @@ except:
 create_table()
 create_transaction_table()
 
+DEFAULT_ALLOWED_ORIGINS = [
+    "http://localhost:8501",
+    "http://127.0.0.1:8501",
+]
+
+configured_origins = os.getenv(
+    "ALLOWED_ORIGINS",
+    ",".join(DEFAULT_ALLOWED_ORIGINS),
+)
+
+ALLOWED_ORIGINS = [
+    origin.strip().rstrip("/")
+    for origin in configured_origins.split(",")
+    if origin.strip()
+]
+
 app = FastAPI(title="UPI Fraud Detection API")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=[
+        "GET",
+        "POST",
+        "OPTIONS",
+    ],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "Accept",
+    ],
 )
 
 # ----------------------------

@@ -9,6 +9,13 @@ BACKEND_DIR = PROJECT_DIR / "backend"
 
 sys.path.insert(0, str(BACKEND_DIR))
 
+import os
+
+os.environ.setdefault(
+    "JWT_SECRET_KEY",
+    "pytest-only-secret-key-with-at-least-32-characters",
+)
+
 from app import app
 from auth import create_token
 

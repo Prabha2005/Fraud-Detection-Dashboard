@@ -514,6 +514,28 @@ streamlit run frontend/ui.py
 
 ---
 
+## Environment Configuration
+
+Copy `.env.example` to `.env` and configure the required values.
+
+Generate a secure JWT secret:
+
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(48))"
+```
+
+---
+
+## 5. Validate without the PowerShell secret
+
+Remove the shell variable so the application must load `.env`:
+
+```powershell
+Remove-Item Env:JWT_SECRET_KEY
+```
+
+---
+
 ## Current Limitations
 
 - The dataset is synthetic and contains only 993 records.

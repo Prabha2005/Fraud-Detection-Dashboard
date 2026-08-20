@@ -1,12 +1,17 @@
-﻿import streamlit as st
+﻿import os
+import streamlit as st
+
+# Compatibility for streamlit-cookies-manager on modern Streamlit.
+if not hasattr(st, "cache"):
+    st.cache = st.cache_data
+
+from streamlit_cookies_manager import EncryptedCookieManager
 import pandas as pd
 import requests
 import matplotlib.pyplot as plt
 import tempfile
 import time
 import random
-from streamlit_cookies_manager import EncryptedCookieManager
-import os
 
 API_URL = os.getenv(
     "FRAUD_API_URL",
@@ -34,7 +39,7 @@ st.set_page_config(page_title="UPI Fraud Detection", layout="wide")
 # ----------------------------
 if st.session_state.token is None:
 
-    st.markdown('<div class="title">ðŸ” UPI Fraud Detection System</div>', unsafe_allow_html=True)
+    st.markdown('<div class="title">🔐 UPI Fraud Detection System</div>', unsafe_allow_html=True)
     st.markdown('<div class="subtitle">Secure Login / Signup</div>', unsafe_allow_html=True)
 
     col1, col2, col3 = st.columns([1,2,1])
@@ -52,9 +57,9 @@ if st.session_state.token is None:
                     json={"username": username, "password": password}
                 )
                 if res.status_code == 200:
-                    st.success("Account created âœ…")
+                    st.success("Account created ✅")
                 else:
-                    st.error("User already exists âŒ")
+                    st.error("User already exists ❌")
 
         else:
             if st.button("Login", use_container_width=True):
@@ -65,15 +70,15 @@ if st.session_state.token is None:
 
                 if response.status_code == 200:
                     token = response.json()["token"]
-                    # âœ… Save in session
+                    # ✅ Save in session
                     st.session_state.token = token
-                    # âœ… Save in cookie
+                    # ✅ Save in cookie
                     cookies["token"] = token
                     cookies.save()
-                    st.success("Login successful âœ…")
+                    st.success("Login successful ✅")
                     st.rerun()
                 else:
-                    st.error("Invalid credentials âŒ")
+                    st.error("Invalid credentials ❌")
 
     st.stop()
 
@@ -129,8 +134,8 @@ st.markdown("""
 # ----------------------------
 # HEADER
 # ----------------------------
-st.markdown('<div class="title">ðŸ’³ Smart Fraud Detection Dashboard</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">Real-Time â€¢ Explainable â€¢ Intelligent Monitoring</div>', unsafe_allow_html=True)
+st.markdown('<div class="title">💳 Smart Fraud Detection Dashboard</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">Real-Time • Explainable • Intelligent Monitoring</div>', unsafe_allow_html=True)
 
 #API_URL = "https://fraud-detection-dashboard-c7ur.onrender.com/predict"
 
@@ -140,98 +145,98 @@ st.markdown('<div class="subtitle">Real-Time â€¢ Explainable â€¢ Intelli
 # ============================
 if page == "About":
 
-    st.title("ðŸ“˜ About Smart Fraud Detection Dashboard")
+    st.title("📘 About Smart Fraud Detection Dashboard")
 
     st.markdown("""
-    ## ðŸ’¡ What is this App?
+    ## 💡 What is this App?
     This is an **AI-powered UPI Fraud Detection Dashboard** that analyzes transaction data and identifies **potentially suspicious transactions**.
 
     The system supports both **real-time detection** and **bulk analysis**, making it useful for understanding fraud patterns.
 
     ---
 
-    ## ðŸ’³ What is UPI?
+    ## 💳 What is UPI?
     UPI (Unified Payments Interface) allows instant money transfer using apps like:
-    â€¢ Google Pay
-    â€¢ PhonePe
-    â€¢ Paytm
+    • Google Pay
+    • PhonePe
+    • Paytm
 
     While it is fast and convenient, it is also vulnerable to fraud.
 
     ---
 
-    ## âš™ï¸ How this App Works
+    ## ⚙️ How this App Works
 
-    ðŸ”¹ **CSV Upload (Bulk Detection)**
-    Upload transaction data â†’ analyze multiple transactions
+    🔹 **CSV Upload (Bulk Detection)**
+    Upload transaction data → analyze multiple transactions
 
-    ðŸ”¹ **Real-Time Mode**
-    Enter transaction â†’ instant fraud prediction
+    🔹 **Real-Time Mode**
+    Enter transaction → instant fraud prediction
 
-    ðŸ”¹ **Live Simulation**
+    🔹 **Live Simulation**
     Simulates real-world transactions and trends
 
-    ðŸ”¹ **PDF Analysis**
-    Upload Google Pay PDF â†’ extract transactions â†’ detect fraud
+    🔹 **PDF Analysis**
+    Upload Google Pay PDF → extract transactions → detect fraud
 
     ---
     """)
 
-    st.info("ðŸ’¡ This system uses Machine Learning + basic behavior analysis for fraud detection.")
+    st.info("💡 This system uses Machine Learning + basic behavior analysis for fraud detection.")
 
     # ----------------------------
     # ARCHITECTURE
     # ----------------------------
-    st.markdown("## ðŸ§  System Architecture")
+    st.markdown("## 🧠 System Architecture")
     st.image("frontend/images/1st-image.jpg", caption="How the app works", use_container_width=True)
 
     st.markdown("""
     This system follows a **3-layer architecture**:
 
-    1ï¸âƒ£ **Frontend (Streamlit UI)**
+    1️⃣ **Frontend (Streamlit UI)**
     - User input and visualization
 
-    2ï¸âƒ£ **Backend (FastAPI)**
+    2️⃣ **Backend (FastAPI)**
     - API handling and authentication (JWT)
 
-    3ï¸âƒ£ **Machine Learning Model (XGBoost)**
+    3️⃣ **Machine Learning Model (XGBoost)**
     - Predicts fraud probability
 
-    ðŸ“Š Data flows from user â†’ API â†’ model â†’ result â†’ dashboard
+    📊 Data flows from user → API → model → result → dashboard
     """)
 
     # ----------------------------
     # WORKFLOW
     # ----------------------------
-    st.markdown("## ðŸ”„ System Workflow")
+    st.markdown("## 🔄 System Workflow")
     st.image("frontend/images/2nd-image.jpg", caption="System Workflow", use_container_width=True)
 
     st.markdown("""
     ### Step-by-Step Flow:
 
-    1ï¸âƒ£ User inputs data / uploads file
-    2ï¸âƒ£ Data sent to backend
-    3ï¸âƒ£ Features prepared (amount + simulated behavior)
-    4ï¸âƒ£ ML model predicts fraud probability
-    5ï¸âƒ£ Risk level assigned
-    6ï¸âƒ£ Results displayed
+    1️⃣ User inputs data / uploads file
+    2️⃣ Data sent to backend
+    3️⃣ Features prepared (amount + simulated behavior)
+    4️⃣ ML model predicts fraud probability
+    5️⃣ Risk level assigned
+    6️⃣ Results displayed
 
-    ðŸŽ¯ Output: Fraud / Legit + Risk Level + Reasons
+    🎯 Output: Fraud / Legit + Risk Level + Reasons
     """)
 
     # ----------------------------
     # FEATURES
     # ----------------------------
     st.markdown("""
-    ## ðŸ§  Key Features
+    ## 🧠 Key Features
 
-    âœ” AI-based fraud detection
-    âœ” Real-time transaction analysis
-    âœ” Bulk transaction processing
-    âœ” Basic behavior-based detection
-    âœ” Risk level classification
-    âœ” Explainable results (reasons)
-    âœ” Interactive dashboard
+    ✔ AI-based fraud detection
+    ✔ Real-time transaction analysis
+    ✔ Bulk transaction processing
+    ✔ Basic behavior-based detection
+    ✔ Risk level classification
+    ✔ Explainable results (reasons)
+    ✔ Interactive dashboard
 
     ---
     """)
@@ -239,14 +244,14 @@ if page == "About":
     # ----------------------------
     # PERFORMANCE
     # ----------------------------
-    st.markdown("## ðŸ“Š Model Performance")
+    st.markdown("## 📊 Model Performance")
 
     st.markdown("""
-    âœ” Accuracy: ~93%
-    âœ” Recall: 0.93
-    âœ” Balanced detection performance
+    ✔ Accuracy: ~93%
+    ✔ Recall: 0.93
+    ✔ Balanced detection performance
 
-    âš ï¸ Note: Some features like geo velocity and merchant risk are simulated for demonstration.
+    ⚠️ Note: Some features like geo velocity and merchant risk are simulated for demonstration.
     """)
 
     # Graph
@@ -261,10 +266,10 @@ if page == "About":
     # EXAMPLE
     # ----------------------------
     st.markdown("""
-    ## ðŸ” Example
+    ## 🔍 Example
 
-    If a user normally sends â‚¹500 and suddenly sends â‚¹50,000
-    ðŸ‘‰ The system flags it as suspicious
+    If a user normally sends ₹500 and suddenly sends ₹50,000
+    👉 The system flags it as suspicious
 
     ---
     """)
@@ -273,11 +278,11 @@ if page == "About":
     # NOTE
     # ----------------------------
     st.markdown("""
-    ## âš ï¸ Important Note
+    ## ⚠️ Important Note
 
-    â€¢ This is a prototype system
-    â€¢ Some behavioral features are simulated
-    â€¢ Designed for learning and demonstration purposes
+    • This is a prototype system
+    • Some behavioral features are simulated
+    • Designed for learning and demonstration purposes
 
     ---
     """)
@@ -286,7 +291,7 @@ if page == "About":
     # GOAL
     # ----------------------------
     st.markdown("""
-    ## ðŸš€ Project Goal
+    ## 🚀 Project Goal
 
     To build a **smart fraud detection system prototype**
     using AI and data analysis for fintech applications.
@@ -298,10 +303,10 @@ if page == "About":
 elif page == "Dashboard":
 
     tab1, tab2, tab3, tab4 = st.tabs([
-        "ðŸ“ Upload Transactions",
-        "âš¡ Real-Time Check",
-        "ðŸ”„ Live Simulation",
-        "ðŸ“„ Upload GPay PDF"
+        "📁 Upload Transactions",
+        "⚡ Real-Time Check",
+        "🔄 Live Simulation",
+        "📄 Upload GPay PDF"
     ])
 
     # ----------------------------
@@ -327,14 +332,14 @@ elif page == "Dashboard":
 
                 #df = pd.DataFrame(response.json())
                 data = response.json()
-                # âœ… Handle error response
+                # ✅ Handle error response
                 if isinstance(data, dict) and "error" in data:
                     st.error(f"Backend Error: {data['error']}")
                     st.stop()
-                # âœ… Normal case
+                # ✅ Normal case
                 df = pd.DataFrame(data)
 
-                st.success("Prediction completed âœ…")
+                st.success("Prediction completed ✅")
 
                 # CALCULATIONS (FIRST)
                 # ----------------------------
@@ -356,14 +361,14 @@ elif page == "Dashboard":
                 # ALERT
                 # ----------------------------
                 if fraud_count > 0:
-                    st.warning(f"âš ï¸ {fraud_count} potentially fraudulent transactions detected!")
+                    st.warning(f"⚠️ {fraud_count} potentially fraudulent transactions detected!")
                 else:
-                    st.success("âœ… No fraud detected")
+                    st.success("✅ No fraud detected")
 
                 # ----------------------------
                 # RISK SUMMARY
                 # ----------------------------
-                st.markdown("### ðŸ“Š Risk Summary")
+                st.markdown("### 📊 Risk Summary")
                 col1, col2 = st.columns(2)
                 col1.metric("High Risk", high_risk)
                 col2.metric("Medium Risk", medium_risk)
@@ -380,7 +385,7 @@ elif page == "Dashboard":
                 # ----------------------------
                 # TOP FRAUDS + VISUALS
                 # ----------------------------
-                st.subheader("ðŸš¨ Top Suspicious Transactions")
+                st.subheader("🚨 Top Suspicious Transactions")
                 top_fraud = df.sort_values(by="probability", ascending=False).head(5)
                 st.dataframe(top_fraud)
 
@@ -400,7 +405,7 @@ elif page == "Dashboard":
                 #----------------------------
                 # ANALYSIS
                 # ----------------------------
-                st.subheader("ðŸ§  Fraud Analysis")
+                st.subheader("🧠 Fraud Analysis")
                 #st.dataframe(df[["prediction", "reasons"]])
                 st.dataframe(df[["prediction", "probability", "risk_level", "reasons"]])
 
@@ -408,7 +413,7 @@ elif page == "Dashboard":
                 # DOWNLOAD
                 # ----------------------------
                 st.download_button(
-                    "â¬‡ Download Results",
+                    "⬇ Download Results",
                     df.to_csv(index=False),
                     file_name="fraud_results.csv"
                 )
@@ -422,26 +427,26 @@ elif page == "Dashboard":
     # ----------------------------
     with tab2:
 
-        st.subheader("âš¡ Real-Time Transaction Check")
+        st.subheader("⚡ Real-Time Transaction Check")
 
-        amount = st.number_input("ðŸ’° Transaction Amount", min_value=0.0)
-        device = st.selectbox("ðŸ“± Device Changed?", [0, 1])
-        merchant = st.slider("ðŸª Merchant Risk", 0.0, 1.0)
-        geo = st.number_input("ðŸŒ Geo Velocity", min_value=0.0)
-        hour = st.slider("â° Hour of Day", 0, 23)
+        amount = st.number_input("💰 Transaction Amount", min_value=0.0)
+        device = st.selectbox("📱 Device Changed?", [0, 1])
+        merchant = st.slider("🏪 Merchant Risk", 0.0, 1.0)
+        geo = st.number_input("🌍 Geo Velocity", min_value=0.0)
+        hour = st.slider("⏰ Hour of Day", 0, 23)
 
         #if st.button("Check Fraud"):
         check = st.button("Check Fraud", use_container_width=True)
         if check:
 
             if amount <= 0:
-                st.warning("âš ï¸ Enter valid transaction amount")
+                st.warning("⚠️ Enter valid transaction amount")
                 st.stop()
 
             payload = {
-    "amount": amount,           # âœ… correct variable
-    "time": hour,               # âœ… correct variable
-    "location": "India",            # âœ… mapped
+    "amount": amount,           # ✅ correct variable
+    "time": hour,               # ✅ correct variable
+    "location": "India",            # ✅ mapped
     "device_change": device,
     "merchant_risk": merchant,
     "geo_velocity": geo
@@ -461,7 +466,7 @@ elif page == "Dashboard":
             #    "https://fraud-detection-dashboard-c7ur.onrender.com/predict_live",
              #   json=payload
             #)
-            # âœ… Prepare headers safely
+            # ✅ Prepare headers safely
             headers = {}
             if st.session_state.token:
                 headers = {"Authorization": f"Bearer {st.session_state.token}"}
@@ -473,7 +478,7 @@ elif page == "Dashboard":
             if response.status_code == 200:
 
                 result = response.json()
-                # ðŸ”¥ Handle backend errors safely
+                # 🔥 Handle backend errors safely
                 if isinstance(result, dict) and "error" in result:
                     st.error(f"Backend Error: {result['error']}")
                     st.stop()
@@ -489,7 +494,7 @@ elif page == "Dashboard":
                 col2.metric("Probability", round(result["probability"], 3))
                 col3.metric("Risk Level", result["risk_level"])
 
-                st.markdown("### ðŸŒ Transaction Context")
+                st.markdown("### 🌐 Transaction Context")
                 ctx1, ctx2 = st.columns(2)
                 ctx1.write(f"IP Address: {result.get('ip_address')}")
                 ctx2.write(f"Device: {result.get('device')}")
@@ -504,32 +509,32 @@ elif page == "Dashboard":
         color:#facc15;
         font-weight:600;
     ">
-    âš ï¸ {result['behavior_flag']}
+    ⚠️ {result['behavior_flag']}
     </div>
     """, unsafe_allow_html=True)
 
                 if result["prediction"] == "Fraud":
-                    #st.error(f"ðŸš¨ {result['reasons']}")
-                    #st.error(f"ðŸš¨ {result['transaction_amount contributed']}, {result['merchant_risk contributed']}, {result['geo_velocity contributed']} were key factors.")
-                    st.error("ðŸš¨ Fraud Detected!")
+                    #st.error(f"🚨 {result['reasons']}")
+                    #st.error(f"🚨 {result['transaction_amount contributed']}, {result['merchant_risk contributed']}, {result['geo_velocity contributed']} were key factors.")
+                    st.error("🚨 Fraud Detected!")
                     for reason in result["reasons"]:
-                        st.write(f"â€¢ {reason}")
-                        # ðŸ”¥ SHAP Explanation (NEW)
+                        st.write(f"• {reason}")
+                        # 🔥 SHAP Explanation (NEW)
                     if result.get("explanation"):
-                        st.markdown("### ðŸ§  AI Explanation")
+                        st.markdown("### 🧠 AI Explanation")
 
                         for reason in result["explanation"].get("top_reasons", []):
-                            st.write(f"ðŸ‘‰ {reason}")
+                            st.write(f"👉 {reason}")
                 else:
-                    st.success("âœ… Safe Transaction")
+                    st.success("✅ Safe Transaction")
 
-                # ðŸ”¥ Risk message FIRST
+                # 🔥 Risk message FIRST
                 if result["probability"] > 0.8:
-                    st.warning("ðŸ”¥ High Risk Transaction")
+                    st.warning("🔥 High Risk Transaction")
                 elif result["probability"] > 0.5:
-                    st.info("âš ï¸ Medium Risk")
+                    st.info("⚠️ Medium Risk")
                 else:
-                    st.success("âœ… Low Risk")
+                    st.success("✅ Low Risk")
 
                 # Charts
                 fig, ax = plt.subplots()
@@ -543,7 +548,7 @@ elif page == "Dashboard":
 
 
                 st.download_button(
-                    "â¬‡ Download Result",
+                    "⬇ Download Result",
                     df.to_csv(index=False),
                     file_name="realtime_result.csv"
                 )
@@ -556,7 +561,7 @@ elif page == "Dashboard":
     # ----------------------------
     with tab3:
 
-        st.subheader("ðŸ”„ Live Monitoring Dashboard")
+        st.subheader("🔄 Live Monitoring Dashboard")
 
         if st.button("Start Simulation"):
 
@@ -569,7 +574,7 @@ elif page == "Dashboard":
 
             fraud_count = 0
 
-            st.info("ðŸ”„ Simulating real-time transaction monitoring...")
+            st.info("🔄 Simulating real-time transaction monitoring...")
 
             for i in range(10):
                 random_amount = random.randint(100, 100000)
@@ -621,9 +626,9 @@ elif page == "Dashboard":
                         fraud_count += 1
 
                     #if result["prediction"] == "Fraud":
-                    #    st.error("ðŸš¨ Fraud Detected")
+                    #    st.error("🚨 Fraud Detected")
                     #else:
-                    #    st.success("âœ… Legit")
+                    #    st.success("✅ Legit")
 
                     # ----------------------------
                     # LIVE STATUS (UPDATED)
@@ -633,13 +638,13 @@ elif page == "Dashboard":
                         st.json(payload)
 
                         if result["prediction"] == "Fraud":
-                            st.error("ðŸš¨ Fraud Detected")
+                            st.error("🚨 Fraud Detected")
                         else:
-                            st.success("âœ… Legit Transaction")
+                            st.success("✅ Legit Transaction")
 
                         # Behavior flag
                         if result.get("behavior_flag"):
-                            st.warning(f"âš ï¸ {result['behavior_flag']}")
+                            st.warning(f"⚠️ {result['behavior_flag']}")
 
                     # ----------------------------
                     # LIVE CHART (SMOOTHED)
@@ -648,7 +653,7 @@ elif page == "Dashboard":
                         fig, ax = plt.subplots()
                         ax.plot(trend, marker="o")
                         ax.set_ylim(0, 1)
-                        ax.set_title("ðŸ“ˆ Fraud Risk Trend (Live)")
+                        ax.set_title("📈 Fraud Risk Trend (Live)")
                         st.pyplot(fig)
 
                     # ----------------------------
@@ -656,7 +661,7 @@ elif page == "Dashboard":
                     # ----------------------------
                     with summary_placeholder.container():
                         total = len(trend)
-                        st.markdown("### ðŸ“Š Live Summary")
+                        st.markdown("### 📊 Live Summary")
 
                         col1, col2 = st.columns(2)
                         col1.metric("Total Transactions", total)
@@ -671,7 +676,7 @@ elif page == "Dashboard":
                 df = pd.DataFrame(results)
 
                 st.download_button(
-                    "â¬‡ Download Simulation Results",
+                    "⬇ Download Simulation Results",
                     df.to_csv(index=False),
                     file_name="simulation_results.csv"
                 )
@@ -680,7 +685,7 @@ elif page == "Dashboard":
     # # TAB 4: PDF UPLOAD (NEW)
     # # ----------------------------
     with tab4:
-        st.subheader("ðŸ“„ Upload Google Pay PDF")
+        st.subheader("📄 Upload Google Pay PDF")
         pdf_file = st.file_uploader("Upload GPay PDF", type=["pdf"])
         if pdf_file:
             with st.spinner("Extracting transactions from PDF..."):
@@ -688,33 +693,33 @@ elif page == "Dashboard":
                 "file": (pdf_file.name, pdf_file.getvalue(), "application/pdf")
             }
                 response = requests.post(
-                f"{API_URL}/predict_pdf",   # ðŸ”¥ new endpoint
+                f"{API_URL}/predict_pdf",   # 🔥 new endpoint
                 files=files,
                 headers={"Authorization": f"Bearer {st.session_state.token}"}
             )
 
             #if response.status_code == 200:
             #    df = pd.DataFrame(response.json())
-            #    st.success("PDF processed successfully âœ…")
+            #    st.success("PDF processed successfully ✅")
             #    st.dataframe(df, use_container_width=True)
 
             if response.status_code == 200:
                 data = response.json()
                 st.write(data)
 
-                # âœ… FIRST handle error
+                # ✅ FIRST handle error
                 if isinstance(data, dict) and "error" in data:
                     st.error(f"Backend Error: {data['error']}")
                     st.stop()
-                # ðŸ” DEBUG LINE (ADD HERE)
+                # 🔍 DEBUG LINE (ADD HERE)
                 # item in data:
                 #    if isinstance(item, dict) and item.get("explanation"):
-                #        st.markdown("### ðŸ§  AI Explanation")
+                #        st.markdown("### 🧠 AI Explanation")
                 #        for reason in item["explanation"].get("top_reasons", []):
-                #            st.write(f"ðŸ‘‰ {reason}")
+                #            st.write(f"👉 {reason}")
 
 
-                # âœ… Handle error response
+                # ✅ Handle error response
                 if isinstance(data, dict) and "error" in data:
                     st.error(f"Backend Error: {data['error']}")
                     st.stop()
@@ -725,12 +730,12 @@ elif page == "Dashboard":
                 fraud_count = (df["prediction"] == "Fraud").sum()
 
                 if fraud_count > 0:
-                    st.warning(f"âš ï¸ {fraud_count} suspicious transactions detected!")
+                    st.warning(f"⚠️ {fraud_count} suspicious transactions detected!")
                 else:
-                    st.success("âœ… No fraud detected")
+                    st.success("✅ No fraud detected")
 
                 st.download_button(
-                "â¬‡ Download Results",
+                "⬇ Download Results",
                 df.to_csv(index=False),
                 file_name="pdf_results.csv"
             )
@@ -742,12 +747,12 @@ elif page == "Dashboard":
 # ============================
 # AI ASSISTANT (UNCHANGED)
 # ============================
-st.sidebar.markdown("## ðŸ¤– AI Assistant")
+st.sidebar.markdown("## 🤖 AI Assistant")
 
 # ----------------------------
-# QUICK BUTTONS (NEW ðŸ”¥)
+# QUICK BUTTONS (NEW 🔥)
 # ----------------------------
-st.sidebar.markdown("### ðŸ’¡ Quick Questions")
+st.sidebar.markdown("### 💡 Quick Questions")
 
 col1, col2 = st.sidebar.columns(2)
 
@@ -767,7 +772,7 @@ if col2.button("UPI info"):
 
 
 # ----------------------------
-# CHAT INPUT (NEW ðŸ’¬)
+# CHAT INPUT (NEW 💬)
 # ----------------------------
 chat_input = st.sidebar.chat_input("Ask anything...")
 
@@ -810,7 +815,7 @@ if user_input:
         st.sidebar.info("Fraud detection identifies suspicious transactions using patterns and AI models.")
 
     elif "upload" in user_input:
-        st.sidebar.info("Go to Upload tab â†’ Upload CSV â†’ View results and download.")
+        st.sidebar.info("Go to Upload tab → Upload CSV → View results and download.")
 
     elif "upi" in user_input:
         st.sidebar.info("""
@@ -823,15 +828,15 @@ It is fast but can be targeted by fraud if users are not careful.
         st.sidebar.info("""
 Phishing is when attackers trick you into sharing OTP or bank details.
 
-âŒ Never share OTP or PIN
+❌ Never share OTP or PIN
 """)
 
     elif "how fraud happens" in user_input:
         st.sidebar.info("""
 Fraud happens when attackers:
-â€¢ Steal OTP
-â€¢ Use fake apps
-â€¢ Access unknown devices
+• Steal OTP
+• Use fake apps
+• Access unknown devices
 """)
 
     elif "detects fraud" in user_input:
@@ -839,10 +844,10 @@ Fraud happens when attackers:
 This system uses AI + behavior analysis.
 
 It checks:
-â€¢ Amount
-â€¢ Device
-â€¢ Location
-â€¢ Past behavior
+• Amount
+• Device
+• Location
+• Past behavior
 """)
 
     elif "what should i do" in user_input:
@@ -874,15 +879,15 @@ elif q == "What do I do now?":
 elif q == "What is fraud detection?":
     st.sidebar.info("Fraud detection identifies suspicious transactions using patterns and AI models.")
 elif q == "How to use upload feature?":
-    st.sidebar.info("Go to Upload tab â†’ Upload CSV â†’ View results and download.")
+    st.sidebar.info("Go to Upload tab → Upload CSV → View results and download.")
 
 elif q == "What is UPI and digital payment?":
     st.sidebar.info("""
 UPI (Unified Payments Interface) is a system that allows you to send or receive money instantly using your mobile phone.
 
 Examples:
-â€¢ Sending money using Google Pay, PhonePe, Paytm
-â€¢ Paying bills online
+• Sending money using Google Pay, PhonePe, Paytm
+• Paying bills online
 
 It is fast and easy, but because it is digital, it can also be targeted by fraudsters.
 """)
@@ -892,22 +897,22 @@ elif q == "What is phishing?":
 Phishing is a type of fraud where attackers try to trick you into sharing your personal information.
 
 Examples:
-â€¢ Fake messages asking for OTP
-â€¢ Fake bank links
-â€¢ Calls pretending to be bank officials
+• Fake messages asking for OTP
+• Fake bank links
+• Calls pretending to be bank officials
 
 Always remember:
-âŒ Never share OTP or PIN with anyone
+❌ Never share OTP or PIN with anyone
 """)
 
 elif q == "How fraud happens in digital payments?":
     st.sidebar.info("""
 Fraud can happen in many ways:
 
-â€¢ Someone steals your OTP
-â€¢ Fake apps or websites
-â€¢ Sudden large transactions from your account
-â€¢ Unknown device access
+• Someone steals your OTP
+• Fake apps or websites
+• Sudden large transactions from your account
+• Unknown device access
 
 Fraud usually happens when something unusual occurs in your normal behavior.
 """)
@@ -917,16 +922,16 @@ elif q == "How this system detects fraud?":
 This system uses Artificial Intelligence (AI) to detect fraud.
 
 It checks:
-â€¢ Transaction amount
-â€¢ Device changes
-â€¢ Location differences
-â€¢ Merchant risk
+• Transaction amount
+• Device changes
+• Location differences
+• Merchant risk
 
 It also compares your past behavior:
-ðŸ‘‰ If something unusual happens â†’ it flags as fraud
+👉 If something unusual happens → it flags as fraud
 
 Example:
-If you usually send â‚¹500 and suddenly send â‚¹50,000 â†’ suspicious
+If you usually send ₹500 and suddenly send ₹50,000 → suspicious
 """)
 
 elif q == "What should I do if fraud is detected?":
@@ -946,9 +951,9 @@ elif q == "Is my data safe here?":
     st.sidebar.info("""
 Yes, your data is handled securely.
 
-â€¢ Authentication is used (login system)
-â€¢ Data is not shared publicly
-â€¢ Only used for fraud detection
+• Authentication is used (login system)
+• Data is not shared publicly
+• Only used for fraud detection
 
 In real systems, additional security like encryption is used.
 """)

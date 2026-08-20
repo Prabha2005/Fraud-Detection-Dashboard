@@ -17,7 +17,6 @@ from models import Transaction, LoginRequest
 from shap_utils import explain_prediction
 from velocity_features import get_velocity_features   # IMPORTANT
 from audit_logger import log_prediction
-from retrain import retrain_model
 
 BACKEND_DIR = Path(__file__).resolve().parent
 MODEL_DIR = BACKEND_DIR / "model"
@@ -479,10 +478,3 @@ async def predict_pdf(file: UploadFile = File(...), user=Depends(verify_token)):
 
     except Exception as e:
         return {"error": str(e)}
-
-# ----------------------------
-# Retrain Endpoint
-# ----------------------------
-@app.post("/retrain")
-def retrain():
-    return retrain_model()

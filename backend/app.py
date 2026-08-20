@@ -15,7 +15,7 @@ from database import create_transaction_table, get_db, create_table
 from models import Transaction, LoginRequest
 
 from shap_utils import explain_prediction
-from velocity_features import get_velocity_features   # ✅ IMPORTANT
+from velocity_features import get_velocity_features   # IMPORTANT
 from audit_logger import log_prediction
 from retrain import retrain_model
 
@@ -28,6 +28,10 @@ try:
     MODEL_DIR / "shap_explainer.pkl"
 )
 except:
+    print(
+        "Warning: SHAP explainer could not be loaded:",
+        error,
+    )
     shap_explainer = None
 
 create_table()
@@ -111,7 +115,7 @@ def login(data: LoginRequest):
         (data.username,)
     ).fetchone()
 
-    # ✅ FIX HERE
+    # Verify Password and Create Token
     if user and verify_password(data.password, user["password"]):
         token = create_token(data.username)
         return {"token": token}
@@ -205,14 +209,14 @@ def predict_live(txn: Transaction, request: Request, user=Depends(verify_token))
         from predict import predict_fraud
 
         #df = pd.DataFrame([txn.dict()])
-        data = txn.dict()
-        # ✅ Map API fields → ML fields
-        data["transaction_amount"] = data.get("amount")
-        data["geo_velocity"] = data.get("location")  # or better: separate field later
-        data["hour_of_day"] = data.get("time")
-
-        data["device_change"] = data.get("device_change", 0)
-        data["merchant_risk"] = data.get("merchant_risk", 0)
+        data = txn.model_dump()
+        
+        data["transaction_amount"] = data.pop("amount")
+        data["hour_of_day"] = data.pop("time")
+        
+        # Location is contextual information and is not used
+        # as the numeric geographic-velocity feature.
+        data.pop("location", None)
 
 
         #df = pd.DataFrame([data])
@@ -229,17 +233,19 @@ def predict_live(txn: Transaction, request: Request, user=Depends(verify_token))
         # Merge
         data.update(velocity)
         df = pd.DataFrame([data])
-        # ✅ Enforce feature order
+        # Enforce feature order
         df = df[FEATURE_ORDER]
         result_df = predict_fraud(df)
         row = result_df.iloc[0]
-        # ✅ SHAP explanation
-        #explanation = explain_prediction(shap_explainer, df)
-        # ✅ Safe SHAP call
-        if shap_explainer:
-            explanation = explain_prediction(shap_explainer, pd.DataFrame([row]))
+
+        # Safe SHAP call
+        if shap_explainer is not None:
+            explanation = explain_prediction(
+                shap_explainer,
+                df[FEATURE_ORDER],
+                )
         else:
-            if row["reasons"]:   # ✅ only if reasons exist
+            if row["reasons"]:   # only if reasons exist
                 explanation = {
             "top_reasons": row["reasons"]
         }
@@ -281,15 +287,28 @@ def predict_live(txn: Transaction, request: Request, user=Depends(verify_token))
         # RESPONSE
         # ----------------------------
         return {
-            "prediction": "Fraud" if int(row["fraud_prediction"]) == 1 else "Legit",
-            "probability": float(row["fraud_probability"]),
-            "risk_level": str(row["risk_level"]),
-            "reasons": list(row["reasons"]) if isinstance(row["reasons"], list) else [],
-            "behavior_flag": behavior_flag,
-            "ip_address": ip_address,
-            "device": user_agent,
-            "explanation": explanation
-        }
+    "prediction": (
+        "Fraud"
+        if int(row["fraud_prediction"]) == 1
+        else "Legit"
+    ),
+    "probability": float(
+        row["fraud_probability"]
+    ),
+    "risk_level": str(row["risk_level"]),
+    "decision_threshold": float(
+        row["decision_threshold"]
+    ),
+    "reasons": (
+        list(row["reasons"])
+        if isinstance(row["reasons"], list)
+        else []
+    ),
+    "behavior_flag": behavior_flag,
+    "ip_address": ip_address,
+    "device": user_agent,
+    "explanation": explanation,
+}
 
     except Exception as e:
         return {"error": str(e)}
@@ -353,8 +372,8 @@ async def predict_pdf(file: UploadFile = File(...), user=Depends(verify_token)):
                 
                 transactions.append({
         "transaction_amount": amount,
-        "merchant": merchant,   # ✅ 
-            "new_payee": is_new,    # ✅ IMPORTANT
+        "merchant": merchant,
+            "new_payee": is_new,    # IMPORTANT
         "device_change": 0,
         "merchant_risk": round(random.random(), 2),
         "geo_velocity": round(random.random() * 200, 2),
@@ -362,7 +381,7 @@ async def predict_pdf(file: UploadFile = File(...), user=Depends(verify_token)):
     })
             
 
-        # ✅ MUST BE INSIDE try
+        # MUST BE INSIDE try
         if not transactions:
             raise HTTPException(status_code=400, detail="No transactions found in PDF")
 
@@ -374,11 +393,6 @@ async def predict_pdf(file: UploadFile = File(...), user=Depends(verify_token)):
         df["amount_sum_24h"] = 0
         # Enforce feature order
         df = df[FEATURE_ORDER]
-
-        # 
-        
-
-        
         
         # ----------------------------
         # PREDICT
@@ -394,17 +408,23 @@ async def predict_pdf(file: UploadFile = File(...), user=Depends(verify_token)):
             prediction = "Fraud" if row["fraud_prediction"] == 1 else "Legit"
             probability = round(row["fraud_probability"], 3)
 
-            # 🔥 RULE FIX
+            # Business Rule: Low Amount Override
             if amount < 50:
                 prediction = "Legit"
                 probability = 0.001
 
             
             # SHAP explanation
-            if shap_explainer:
-                explanation = explain_prediction(shap_explainer, pd.DataFrame([row]))
+            if shap_explainer is not None:
+                explanation_input = pd.DataFrame([
+                    row[FEATURE_ORDER].to_dict()
+                    ])
+                explanation = explain_prediction(
+                    shap_explainer,
+                    explanation_input,
+                    )
             else:
-                if row["reasons"]:   # ✅ only if reasons exist
+                if row["reasons"]:   # only if reasons exist
                     explanation = {
             "top_reasons": row["reasons"]
         }
@@ -429,7 +449,10 @@ async def predict_pdf(file: UploadFile = File(...), user=Depends(verify_token)):
         "probability": probability,
         "risk_level": row["risk_level"],
         "reasons": row["reasons"],
-        "explanation": explanation
+        "explanation": explanation,
+        "decision_threshold": float(
+            row["decision_threshold"]
+            ),
     })
 
         return response

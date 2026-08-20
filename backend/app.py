@@ -192,7 +192,7 @@ async def predict(file: UploadFile = File(...), user=Depends(verify_token)):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 
 
 
@@ -210,10 +210,8 @@ def predict_live(txn: Transaction, request: Request, user=Depends(verify_token))
 
         #df = pd.DataFrame([txn.dict()])
         data = txn.model_dump()
-        
         data["transaction_amount"] = data.pop("amount")
         data["hour_of_day"] = data.pop("time")
-        
         # Location is contextual information and is not used
         # as the numeric geographic-velocity feature.
         data.pop("location", None)
@@ -221,7 +219,7 @@ def predict_live(txn: Transaction, request: Request, user=Depends(verify_token))
 
         #df = pd.DataFrame([data])
         #explanation = explain_prediction(shap_explainer, df)
-        
+
 
         # ----------------------------
         # BEHAVIOR TRACKING
@@ -312,7 +310,7 @@ def predict_live(txn: Transaction, request: Request, user=Depends(verify_token))
 
     except Exception as e:
         return {"error": str(e)}
-    
+
 # ----------------------------
 # PDF Upload Endpoint
 # ----------------------------
@@ -353,12 +351,12 @@ async def predict_pdf(file: UploadFile = File(...), user=Depends(verify_token)):
             line = line.strip()
 
             name_match = re.search(r"(Paid to|Received from)\s+(.+)", line)
-   
+
             if name_match:
                 current_merchant = name_match.group(2).strip()
                 print("FOUND MERCHANT:", current_merchant)
                 continue
-            
+
             amount_match = re.search(r"₹\s?([\d,]+\.?\d*)", line)
 
             if amount_match:
@@ -369,7 +367,7 @@ async def predict_pdf(file: UploadFile = File(...), user=Depends(verify_token)):
                 # New payee detection
                 is_new = 1 if merchant not in seen_users else 0
                 seen_users.add(merchant)
-                
+
                 transactions.append({
         "transaction_amount": amount,
         "merchant": merchant,
@@ -379,7 +377,7 @@ async def predict_pdf(file: UploadFile = File(...), user=Depends(verify_token)):
         "geo_velocity": round(random.random() * 200, 2),
         "hour_of_day": random.randint(0, 23)
     })
-            
+
 
         # MUST BE INSIDE try
         if not transactions:
@@ -393,7 +391,7 @@ async def predict_pdf(file: UploadFile = File(...), user=Depends(verify_token)):
         df["amount_sum_24h"] = 0
         # Enforce feature order
         df = df[FEATURE_ORDER]
-        
+
         # ----------------------------
         # PREDICT
         # ----------------------------
@@ -412,8 +410,6 @@ async def predict_pdf(file: UploadFile = File(...), user=Depends(verify_token)):
             if amount < 50:
                 prediction = "Legit"
                 probability = 0.001
-
-            
             # SHAP explanation
             if shap_explainer is not None:
                 explanation_input = pd.DataFrame([
@@ -427,21 +423,21 @@ async def predict_pdf(file: UploadFile = File(...), user=Depends(verify_token)):
                 if row["reasons"]:   # only if reasons exist
                     explanation = {
             "top_reasons": row["reasons"]
-        }
+            }
                 else:
                     explanation = None
-                
+
 
     # Audit logging
             log_prediction({
-    "user": user.get("user"),
-    "amount": amount,
-    "prediction": prediction,
-    "probability": probability,
-    "source": "pdf"
-})
-            
-        
+                "user": user.get("user"),
+                "amount": amount,
+                "prediction": prediction,
+                "probability": probability,
+                "source": "pdf"
+                })
+
+
             response.append({
         "amount": amount,
         "new_payee": row.get("new_payee", 0),
@@ -453,13 +449,13 @@ async def predict_pdf(file: UploadFile = File(...), user=Depends(verify_token)):
         "decision_threshold": float(
             row["decision_threshold"]
             ),
-    })
+            })
 
         return response
 
     except Exception as e:
         return {"error": str(e)}
-    
+
 # ----------------------------
 # Retrain Endpoint
 # ----------------------------

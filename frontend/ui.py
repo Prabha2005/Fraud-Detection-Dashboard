@@ -7,10 +7,14 @@ import matplotlib.pyplot as plt
 import tempfile
 import time
 import random
+import os
 
 
 #API_URL = "http://127.0.0.1:8000"
-API_URL = "https://fraud-detection-dashboard-c7ur.onrender.com"
+API_URL = os.getenv(
+    "FRAUD_API_URL",
+    "https://fraud-detection-dashboard-c7ur.onrender.com",
+)
 
 if "token" not in st.session_state:
     st.session_state.token = None
@@ -444,7 +448,7 @@ elif page == "Dashboard":
             #    "https://fraud-detection-dashboard-c7ur.onrender.com/predict_live",
              #   json=payload
             #)
-            # ✅ Prepare headers safely
+            # Prepare headers safely
             headers = {}
             if st.session_state.token:
                 headers = {"Authorization": f"Bearer {st.session_state.token}"}
@@ -685,7 +689,7 @@ elif page == "Dashboard":
                 data = response.json()
                 st.write(data)
 
-                # ✅ FIRST handle error
+                # Handle error response
                 if isinstance(data, dict) and "error" in data:
                     st.error(f"Backend Error: {data['error']}")
                     st.stop()
@@ -697,7 +701,7 @@ elif page == "Dashboard":
                             st.write(f"👉 {reason}")
 
                 
-                # ✅ Handle error response
+                # Handle error response
                 if isinstance(data, dict) and "error" in data:
                     st.error(f"Backend Error: {data['error']}")
                     st.stop()

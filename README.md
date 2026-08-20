@@ -183,15 +183,21 @@ Class imbalance is handled using XGBoost's `scale_pos_weight` parameter. SMOTE i
 The class weight is calculated only from the training split:
 
 ```text
-Training legitimate records: 572
+Training legitimate records: 567
 Training fraud records: 28
-scale_pos_weight: 20.4286
+scale_pos_weight: 20.2500
 ```
 
 The calculation is:
 
 ```text
 scale_pos_weight = legitimate training records / fraud training records
+```
+
+The value is:
+
+```text
+567 ÷ 28 = 20.25
 ```
 
 ---

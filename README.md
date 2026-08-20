@@ -264,10 +264,10 @@ The model was evaluated on a 199-record synthetic holdout set.
 
 | Metric | Result |
 |---|---:|
-| Accuracy | 1.0000 |
+| Accuracy | 0.9950 |
 | Precision | 1.0000 |
-| Recall | 1.0000 |
-| F1 Score | 1.0000 |
+| Recall | 0.8889 |
+| F1 Score | 0.9412 |
 | ROC-AUC | 1.0000 |
 | PR-AUC | 1.0000 |
 
@@ -275,15 +275,15 @@ The model was evaluated on a 199-record synthetic holdout set.
 
 ```text
 [[191, 0],
- [  0, 9]]
+ [  1, 8]]
 ```
 
 This represents:
 
-- 191 correctly classified legitimate transactions
-- 9 correctly classified fraudulent transactions
+- 190 correctly classified legitimate transactions
+- 8 correctly detected fraudulent transactions
 - 0 false positives
-- 0 false negatives
+- 1 false negative
 
 > Important: These results apply only to the current synthetic holdout set, which contains nine fraud examples. The dataset is small and strongly separable, with `merchant_risk` dominating model importance. These results do not prove real-world performance. A larger external dataset is required to evaluate generalization.
 
@@ -526,7 +526,7 @@ python -c "import secrets; print(secrets.token_urlsafe(48))"
 
 ---
 
-## 5. Validate without the PowerShell secret
+## Validate without the PowerShell secret
 
 Remove the shell variable so the application must load `.env`:
 

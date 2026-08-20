@@ -11,12 +11,13 @@ python-multipart
 pyjwt
 bcrypt
 
-# 🔥 NEW ADDITIONS
+# ADDITIONS
 shap
 pdfplumber
 matplotlib
 scipy
+python-dotenv
 
-# 🚀 OPTIONAL
+# OPTIONAL
 imbalanced-learn
 slowapi

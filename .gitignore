@@ -2,3 +2,11 @@ venv/
 __pycache__/
 *.pyc
 .env
+
+# Runtime databases
+*.db
+
+# Runtime logs
+logs/
+backend/logs/
+*.jsonl

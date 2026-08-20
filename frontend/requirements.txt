@@ -7,3 +7,4 @@ shap
 plotly
 Pillow
 streamlit-cookies-manager
+python-dotenv

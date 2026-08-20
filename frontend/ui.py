@@ -1,14 +1,20 @@
-﻿import os
+﻿import json
+import os
+from pathlib import Path
 import streamlit as st
+from dotenv import load_dotenv
 
-# Compatibility for streamlit-cookies-manager on modern Streamlit.
-if not hasattr(st, "cache"):
-    st.cache = st.cache_data
+PROJECT_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(PROJECT_DIR / ".env")
+
+# Compatibility for streamlit-cookies-manager.
+# The package still uses the deprecated st.cache decorator.
+st.cache = st.cache_data
 
 from streamlit_cookies_manager import EncryptedCookieManager
+import matplotlib.pyplot as plt
 import pandas as pd
 import requests
-import matplotlib.pyplot as plt
 import tempfile
 import time
 import random
@@ -216,14 +222,14 @@ if page == "About":
     # WORKFLOW
     # ----------------------------
     st.markdown("## 🔄 System Workflow")
-    st.image("frontend/images/2nd-image.jpg", caption="System Workflow", use_container_width=True)
+    st.image("https://res.cloudinary.com/qzomzjxw/image/upload/v1787215311/UPI-Fraud-Detection-Workflow.png", caption="UPI Fraud Detection Workflow", use_container_width=True)
 
     st.markdown("""
     ### Step-by-Step Flow:
 
     1️⃣ User inputs data / uploads file
     2️⃣ Data sent to backend
-    3️⃣ Features prepared (amount + simulated behavior)
+    3️⃣ Nine model features are validated and prepared
     4️⃣ ML model predicts fraud probability
     5️⃣ Risk level assigned
     6️⃣ Results displayed
@@ -231,19 +237,29 @@ if page == "About":
     🎯 Output: Fraud / Legit + Risk Level + Reasons
     """)
 
+    st.caption(
+        "Real-time behavioural features are calculated from "
+        "transaction history. CSV records use defaults when "
+        "history is unavailable, while some PDF features are "
+        "generated for demonstration."
+    )
+
     # ----------------------------
     # FEATURES
     # ----------------------------
     st.markdown("""
     ## 🧠 Key Features
 
-    ✔ AI-based fraud detection
-    ✔ Real-time transaction analysis
-    ✔ Bulk transaction processing
-    ✔ Basic behavior-based detection
-    ✔ Risk level classification
-    ✔ Explainable results (reasons)
-    ✔ Interactive dashboard
+    - XGBoost fraud-classification model
+    - Nine-feature preprocessing pipeline
+    - Real-time and CSV batch prediction
+    - User-history-based behavioural analysis
+    - Validation-tuned decision threshold
+    - SHAP-based prediction explanations
+    - JWT-protected prediction APIs
+    - Fraud probability and risk classification
+    - Interactive monitoring dashboard
+    - Automated preprocessing and API tests
 
     ---
     """)
@@ -251,23 +267,107 @@ if page == "About":
     # ----------------------------
     # PERFORMANCE
     # ----------------------------
-    st.markdown("## 📊 Model Performance")
+    st.markdown("## 📊 Verified Model Performance")
 
-    st.markdown("""
-    ✔ Accuracy: ~93%
-    ✔ Recall: 0.93
-    ✔ Balanced detection performance
+    metrics_path = (
+        PROJECT_DIR
+        / "backend"
+        / "model"
+        / "evaluation_metrics.json"
+    )
 
-    ⚠️ Note: Some features like geo velocity and merchant risk are simulated for demonstration.
-    """)
+    try:
+        with open(
+            metrics_path,
+            "r",
+            encoding="utf-8",
+        ) as metrics_file:
+            metrics = json.load(metrics_file)
 
-    # Graph
-    import matplotlib.pyplot as plt
-    fig, ax = plt.subplots()
-    ax.bar(["Accuracy", "Recall", "Precision"], [0.933, 0.93, 0.91])
-    ax.set_ylim(0, 1)
-    ax.set_title("Model Performance Metrics")
-    st.pyplot(fig)
+        accuracy = float(metrics["accuracy"])
+        precision = float(metrics["precision"])
+        recall = float(metrics["recall"])
+        f1_score = float(metrics["f1_score"])
+        roc_auc = min(float(metrics["roc_auc"]), 1.0)
+        pr_auc = min(float(metrics["pr_auc"]), 1.0)
+        threshold = float(metrics["selected_threshold"])
+
+        metric_columns = st.columns(4)
+
+        metric_columns[0].metric(
+            "Accuracy",
+            f"{accuracy:.2%}",
+        )
+        metric_columns[1].metric(
+            "Precision",
+            f"{precision:.2%}",
+        )
+        metric_columns[2].metric(
+            "Recall",
+            f"{recall:.2%}",
+        )
+        metric_columns[3].metric(
+            "F1 Score",
+            f"{f1_score:.2%}",
+        )
+
+        st.markdown(
+            f"""
+            - **ROC-AUC:** `{roc_auc:.4f}`
+            - **PR-AUC:** `{pr_auc:.4f}`
+            - **Tuned decision threshold:** `{threshold:.4f}`
+            """
+        )
+
+        fig, ax = plt.subplots()
+
+        metric_names = [
+            "Accuracy",
+            "Precision",
+            "Recall",
+            "F1",
+            "ROC-AUC",
+            "PR-AUC",
+        ]
+
+        metric_values = [
+            accuracy,
+            precision,
+            recall,
+            f1_score,
+            roc_auc,
+            pr_auc,
+        ]
+
+        ax.bar(
+            metric_names,
+            metric_values,
+            color="#38bdf8",
+        )
+        ax.set_ylim(0, 1.05)
+        ax.set_ylabel("Score")
+        ax.set_title("Verified Test-Set Metrics")
+        ax.tick_params(axis="x", rotation=30)
+
+        st.pyplot(fig)
+        plt.close(fig)
+
+        st.caption(
+            "Results are from a 199-record synthetic holdout "
+            "set containing nine fraud cases. They do not "
+            "represent production banking performance."
+        )
+
+    except (
+        OSError,
+        KeyError,
+        TypeError,
+        ValueError,
+        json.JSONDecodeError,
+    ) as error:
+        st.warning(
+            "Verified evaluation metrics could not be loaded."
+        )
 
     # ----------------------------
     # EXAMPLE
@@ -287,9 +387,12 @@ if page == "About":
     st.markdown("""
     ## ⚠️ Important Note
 
-    • This is a prototype system
-    • Some behavioral features are simulated
-    • Designed for learning and demonstration purposes
+    - This is an educational prototype.
+    - The dataset contains 993 synthetic transactions.
+    - Behavioural features use constant defaults during training.
+    - Some PDF features are generated for demonstration.
+    - Results must not be treated as real banking decisions.
+    - Real financial or personal data should not be uploaded.
 
     ---
     """)

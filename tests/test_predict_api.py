@@ -23,6 +23,16 @@ from auth import create_token
 client = TestClient(app)
 
 
+def test_health_endpoints():
+    root_res = client.get("/")
+    assert root_res.status_code == 200
+    assert "UPI Fraud Detection API" in root_res.json().get("status", "")
+
+    health_res = client.get("/health")
+    assert health_res.status_code == 200
+    assert health_res.json()["status"] == "healthy"
+
+
 def test_predict_rejects_unauthenticated_request():
     csv_content = (
         "transaction_amount,device_change,"

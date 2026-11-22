@@ -195,12 +195,23 @@ if page == "About":
     ---
     """)
 
+    st.markdown("""
+    ## 🛠️ Technology Stack
+
+    - **Backend:** Python, FastAPI, SQLite
+    - **Frontend:** Streamlit
+    - **Machine Learning:** XGBoost, scikit-learn
+    - **Explainability:** SHAP
+    - **Containerization:** Docker, Docker Compose
+    - **CI/CD and Version Control:** GitHub Actions, Git, GitHub
+    """)
+
     st.info("💡 This system uses Machine Learning + basic behavior analysis for fraud detection.")
 
     # ----------------------------
     # ARCHITECTURE
     # ----------------------------
-    st.markdown("## 🧠 System Architecture")
+    st.markdown("## 🧠 Project Architecture")
     st.image(
         Path(__file__).resolve().parent / "images" / "1st-image.jpg",
         caption="How the app works",
@@ -208,18 +219,22 @@ if page == "About":
     )
 
     st.markdown("""
-    This system follows a **3-layer architecture**:
+    - **Streamlit frontend:** Collects transaction inputs, uploads files, and presents predictions and visualizations.
+    - **FastAPI backend:** Validates requests, applies authentication, prepares prediction features, and exposes the application APIs.
+    - **XGBoost prediction pipeline:** Processes the prepared features, calculates fraud probability, and supports SHAP-based explanations.
+    - **SQLite persistence:** Stores application users and transaction records through the backend.
 
-    1️⃣ **Frontend (Streamlit UI)**
-    - User input and visualization
+    Data flows from the Streamlit interface to the FastAPI backend, through the prediction pipeline, and back to the dashboard.
+    """)
 
-    2️⃣ **Backend (FastAPI)**
-    - API handling and authentication (JWT)
+    st.markdown("""
+    ## 🚢 Deployment and Engineering
 
-    3️⃣ **Machine Learning Model (XGBoost)**
-    - Predicts fraud probability
-
-    📊 Data flows from user → API → model → result → dashboard
+    - Docker-based multi-service orchestration is supported through Docker Compose.
+    - Application configuration is environment-based, including `DATABASE_PATH` and `AUDIT_LOG_PATH`.
+    - GitHub Actions provides a CI pipeline for dependency installation and code validation.
+    - CI runs Flake8 linting and automated pytest execution.
+    - Automated Docker image build validation covers both the backend and frontend.
     """)
 
     # ----------------------------

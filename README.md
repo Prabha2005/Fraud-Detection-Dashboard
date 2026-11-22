@@ -58,6 +58,8 @@ This external demo's public availability is not verified; an unauthenticated che
 - JWT authentication
 - bcrypt password hashing
 - SQLite
+- Configurable SQLite database path using `DATABASE_PATH`
+- Configurable audit-log storage using `AUDIT_LOG_PATH`
 
 ### Frontend and Visualization
 
@@ -73,6 +75,17 @@ This external demo's public availability is not verified; an unauthenticated che
 
 - pytest
 - FastAPI TestClient
+
+### Containerization
+
+- Docker
+- Docker Compose
+
+### CI/CD and Version Control
+
+- GitHub Actions
+- Git
+- GitHub
 
 ---
 
@@ -439,6 +452,17 @@ python -m pytest tests -v
 Remove-Item Env:PYTEST_DISABLE_PLUGIN_AUTOLOAD
 ```
 
+## Continuous Integration
+
+The GitHub Actions CI workflow installs the Python dependencies, runs Flake8 linting, and executes the automated pytest test suite.
+
+After the test-and-lint job succeeds, Docker image builds run to validate the backend and frontend Dockerfiles:
+
+- Backend Docker image build
+- Frontend Docker image build
+
+Docker image builds run only after the test-and-lint job succeeds.
+
 ---
 
 ## Project Structure
@@ -596,3 +620,7 @@ Through this project, I gained hands-on experience in:
 - Streamlit dashboard development
 - Automated testing
 - Model deployment
+- Docker containerization and multi-service orchestration
+- CI/CD pipeline configuration using GitHub Actions
+- Automated Docker image build validation
+- Environment-based application configuration

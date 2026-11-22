@@ -24,9 +24,9 @@ MODEL_DIR = BACKEND_DIR / "model"
 # Load SHAP explainer
 try:
     shap_explainer = joblib.load(
-    MODEL_DIR / "shap_explainer.pkl"
-)
-except:
+        MODEL_DIR / "shap_explainer.pkl"
+    )
+except Exception as error:
     print(
         "Warning: SHAP explainer could not be loaded:",
         error,
@@ -102,6 +102,14 @@ FEATURE_ORDER = [
 @app.get("/")
 def health_check():
     return {"status": "UPI Fraud Detection API is running"}
+
+
+@app.get("/health")
+def liveness_health_check():
+    return {
+        "status": "healthy",
+        "service": "upi-fraud-detection-api"
+    }
 
 
 # ----------------------------
@@ -478,3 +486,9 @@ async def predict_pdf(file: UploadFile = File(...), user=Depends(verify_token)):
 
     except Exception as e:
         return {"error": str(e)}
+
+
+if __name__ == "__main__":
+    import uvicorn
+    server_port = int(os.getenv("PORT", "8000"))
+    uvicorn.run(app, host="127.0.0.1", port=server_port, reload=False)

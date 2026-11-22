@@ -201,7 +201,11 @@ if page == "About":
     # ARCHITECTURE
     # ----------------------------
     st.markdown("## 🧠 System Architecture")
-    st.image("frontend/images/1st-image.jpg", caption="How the app works", use_container_width=True)
+    st.image(
+        Path(__file__).resolve().parent / "images" / "1st-image.jpg",
+        caption="How the app works",
+        use_container_width=True,
+    )
 
     st.markdown("""
     This system follows a **3-layer architecture**:

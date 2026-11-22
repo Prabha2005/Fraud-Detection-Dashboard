@@ -1,0 +1,54 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: fraud-detection-backend:latest
+    container_name: fraud_backend
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      - PORT=8000
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in root .env}
+      - JWT_EXPIRE_MINUTES=60
+      - ALLOWED_ORIGINS=http://localhost:8501,http://127.0.0.1:8501,http://frontend:8501
+      - DATABASE_PATH=/app/data/users.db
+      - AUDIT_LOG_PATH=/app/logs/audit_log.jsonl
+    volumes:
+      - backend_data:/app/data
+      - backend_logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: fraud-detection-frontend:latest
+    container_name: fraud_frontend
+    ports:
+      - "127.0.0.1:8501:8501"
+    environment:
+      - FRAUD_API_URL=http://backend:8000
+      - COOKIE_PASSWORD=${COOKIE_PASSWORD:?Set COOKIE_PASSWORD in root .env}
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  backend_data:
+    driver: local
+  backend_logs:
+    driver: local

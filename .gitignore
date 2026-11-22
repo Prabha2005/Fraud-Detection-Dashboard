@@ -2,11 +2,34 @@ venv/
 __pycache__/
 *.pyc
 .env
+.env.*
+!.env.example
+
+# Test and build artifacts
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.tmp
+**/.streamlit/secrets.toml
 
 # Runtime databases
 *.db
+*.db-*
 
 # Runtime logs
 logs/
 backend/logs/
 *.jsonl
+*.log
+
+# AWS deployment is postponed; keep these files local
+.github/workflows/cd-aws.yml
+aws/apprunner-backend.json
+aws/apprunner-frontend.json
+aws/ecs-task-backend.json
+aws/ecs-task-frontend.json
+
+# Unreviewed local statement document
+frontend/images/document1000073072.pdf..pdf

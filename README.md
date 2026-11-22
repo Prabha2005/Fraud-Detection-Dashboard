@@ -8,11 +8,15 @@ The project combines an XGBoost classification model, FastAPI REST APIs and an i
 
 > This project is an educational prototype and is not intended for production banking use.
 
+**Supported deployment:** local Docker Compose. AWS deployment is postponed and its templates are experimental; no GCP deployment is implemented.
+
 ---
 
 ## Live Demo
 
 [Open the Fraud Detection Dashboard](https://fraud-detection-dashboard-a2ewk5y6yoo6mlw5z995dw.streamlit.app/)
+
+This external demo's public availability is not verified; an unauthenticated check redirected to Streamlit authentication. Use the Docker Compose instructions below for the supported local deployment.
 
 ---
 
@@ -313,7 +317,8 @@ In the current trained model, the five basic transaction features influence pred
 
 | Method | Endpoint | Authentication | Purpose |
 |---|---|---|---|
-| GET | `/` | No | Check whether the API is running |
+| GET | `/` | No | Basic API response |
+| GET | `/health` | No | Liveness health check |
 | POST | `/signup` | No | Create a user account |
 | POST | `/login` | No | Authenticate and obtain a JWT |
 | POST | `/predict` | Bearer token | Upload a CSV for batch prediction |
@@ -323,14 +328,15 @@ In the current trained model, the five basic transaction features influence pred
 ### Health Check
 
 ```http
-GET /
+GET /health
 ```
 
 Example response:
 
 ```json
 {
-  "status": "UPI Fraud Detection API is running"
+  "status": "healthy",
+  "service": "upi-fraud-detection-api"
 }
 ```
 
@@ -423,12 +429,6 @@ Run all tests:
 python -m pytest tests -v
 ```
 
-Expected result:
-
-```text
-5 passed
-```
-
 If unnecessary globally installed pytest plugins cause high memory usage, automatic plugin loading can be disabled temporarily.
 
 PowerShell:
@@ -479,50 +479,63 @@ Fraud-Detection-Dashboard/
 
 ## Running the Project Locally
 
-### Install Backend Dependencies
+### Configure the environment
 
-```bash
-pip install -r backend/requirements.txt
+```powershell
+Copy-Item .env.example .env
 ```
 
-### Start FastAPI
+Replace the placeholder values for `JWT_SECRET_KEY` and `COOKIE_PASSWORD` with locally generated secrets. Keep `.env` private; it is ignored by Git.
 
-```bash
-cd backend
-uvicorn app:app --reload
+### Install dependencies
+
+From the repository root, install both service requirement sets:
+
+```powershell
+python -m pip install -r backend/requirements.txt
+python -m pip install -r frontend/requirements.txt
 ```
 
-The API will be available at:
+### Start the backend
 
-```text
-http://127.0.0.1:8000
+In PowerShell, from the repository root:
+
+```powershell
+Set-Location backend
+python -m uvicorn app:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Swagger documentation:
+The backend is available at `http://127.0.0.1:8000`; health is at `/health` and Swagger UI is at `/docs`.
 
-```text
-http://127.0.0.1:8000/docs
+### Start the frontend
+
+In a second terminal, from the repository root, set `FRAUD_API_URL` to `http://127.0.0.1:8000` in `.env`, then run:
+
+```powershell
+python -m streamlit run frontend/ui.py
 ```
 
-### Start Streamlit
-
-From the project root:
-
-```bash
-streamlit run frontend/ui.py
-```
+Open `http://127.0.0.1:8501`.
 
 ---
 
-## Environment Configuration
+## Docker Compose Deployment
 
-Copy `.env.example` to `.env` and configure the required values.
+Docker Compose is the supported deployment path. Copy `.env.example` to `.env` and replace both secret placeholders before starting the services. Compose supplies the frontend with the internal API URL `http://backend:8000`; do not use `localhost` between containers.
 
-Generate a secure JWT secret:
-
-```bash
-python -c "import secrets; print(secrets.token_urlsafe(48))"
+```powershell
+docker compose up --build
 ```
+
+- Dashboard: `http://127.0.0.1:8501`
+- Backend API: `http://127.0.0.1:8000`
+- Backend health: `http://127.0.0.1:8000/health`
+- Backend API docs: `http://127.0.0.1:8000/docs`
+- Frontend health: `http://127.0.0.1:8501/_stcore/health`
+
+The host ports bind to loopback. `backend_data` and `backend_logs` are named local Docker volumes. `docker compose down` stops and removes the containers but preserves those volumes; do not use `-v` unless you intend to delete their data.
+
+GitHub Actions CI is configured for tests and image-build checks. AWS is postponed; its workflow and templates are local-only, Git-ignored, and not included in a public checkout. GCP deployment is not implemented. See [DEPLOYMENT.md](DEPLOYMENT.md) for status and limitations.
 
 ---
 
